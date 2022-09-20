@@ -9,17 +9,6 @@
 </head>
 <body>
     <canvas id="canvas"></canvas>
-    <div id="uiContainer">
-        <div id="ui">
-            <div id="fieldOfView"></div>
-            <div id="x"></div>
-            <div id="y"></div>
-            <div id="z"></div>
-            <div id="angleX"></div>
-            <div id="angleY"></div>
-            <div id="angleZ"></div>
-        </div>
-    </div>
 </body>
 </html>
 <!--
@@ -30,26 +19,24 @@ and https://webgl2fundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
 for webgl-utils, m3, m4, and webgl-lessons-ui.
 -->
 <script src="https://greggman.github.io/webgl-lint/webgl-lint.js"></script><!--Script para checar erros WebGL-->
+<script src="https://webgl2fundamentals.org/webgl/resources/twgl-full.min.js"></script>
+<script src="https://webgl2fundamentals.org/webgl/resources/m4.js"></script>
+<script src="https://webgl2fundamentals.org/webgl/resources/flattened-primitives.js"></script>
 <script src="../resources/webgl-utils.js"></script><!--Mantive essa para utilizar os scripts de ferramentas-->
 <script src="../resources/webgl-lessons-ui.js"></script><!--Mantive essa para utilizar os scripts de ferramentas-->
 
 <script>
-    "use strict";
+   "use strict";
 
-    var vertexShaderSource = `#version 300 es
+var vs = `#version 300 es
 
-// an attribute is an input (in) to a vertex shader.
-// It will receive data from a buffer
 in vec4 a_position;
 in vec4 a_color;
 
-// A matrix to transform the positions by
 uniform mat4 u_matrix;
 
-// a varying the color to the fragment shader
 out vec4 v_color;
 
-// all shaders have a main function
 void main() {
   // Multiply the position by the matrix.
   gl_Position = u_matrix * a_position;
@@ -59,619 +46,332 @@ void main() {
 }
 `;
 
-    var fragmentShaderSource = `#version 300 es
-
+var fs = `#version 300 es
 precision highp float;
 
-// the varied color passed from the vertex shader
+// Passed in from the vertex shader.
 in vec4 v_color;
 
-// we need to declare an output for the fragment shader
+uniform vec4 u_colorMult;
+uniform vec4 u_colorOffset;
+
 out vec4 outColor;
 
 void main() {
-  outColor = v_color;
+   outColor = v_color * u_colorMult + u_colorOffset;
 }
 `;
 
+var TRS = function() {
+  this.translation = [0, 0, 0];
+  this.rotation = [0, 0, 0];
+  this.scale = [1, 1, 1];
+};
 
-    function main() {
-        // Get A WebGL context
-        /** @type {HTMLCanvasElement} */
-        var canvas = document.querySelector("#canvas");
-        var gl = canvas.getContext("webgl2");
-        if (!gl) {
-            return;
-        }
+TRS.prototype.getMatrix = function(dst) {
+  dst = dst || new Float32Array(16);
+  var t = this.translation;
+  var r = this.rotation;
+  var s = this.scale;
 
-        // Use our boilerplate utils to compile the shaders and link into a program
-        var program = webglUtils.createProgramFromSources(gl,
-            [vertexShaderSource, fragmentShaderSource]);
+  // compute a matrix from translation, rotation, and scale
+  m4.translation(t[0], t[1], t[2], dst);
+  m4.xRotate(dst, r[0], dst);
+  m4.yRotate(dst, r[1], dst);
+  m4.zRotate(dst, r[2], dst);
+  m4.scale(dst, s[0], s[1], s[2], dst);
+  return dst;
+};
 
-        // look up where the vertex data needs to go.
-        var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
-        var colorAttributeLocation = gl.getAttribLocation(program, "a_color");
+var Node = function(source) {
+  this.children = [];
+  this.localMatrix = m4.identity();
+  this.worldMatrix = m4.identity();
+  this.source = source;
+};
 
-        // look up uniform locations
-        var matrixLocation = gl.getUniformLocation(program, "u_matrix");
-
-        // Create a buffer
-        var positionBuffer = gl.createBuffer();
-
-        // Create a vertex array object (attribute state)
-        var vao = gl.createVertexArray();
-
-        // and make it the one we're currently working with
-        gl.bindVertexArray(vao);
-
-        // Turn on the attribute
-        gl.enableVertexAttribArray(positionAttributeLocation);
-
-        // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-        //Create the 3D Object Vertex Array (created by me)
-        var object = [
-            //Lateral1+25
-
-            0, 25, 0,
-            0, 75, 0,
-            150, 25, 0,
-            150, 25, 0,
-            0, 75, 0,
-            150, 75, 0,
-
-            //Fundo
-            0, 75, 0,
-            0, 75, 50,
-            150, 75, 0,
-            150, 75, 0,
-            0, 75, 50,
-            150, 75, 50,
-
-            //Lateral2
-            0, 75, 50,
-            0, 25, 50,
-            150, 75, 50,
-            150, 75, 50,
-            0, 25, 50,
-            150, 25, 50,
-
-            //Topo
-            0, 25, 50,
-            0, 25, 0,
-            150, 25, 50,
-            0, 25, 0,
-            150, 25, 0,
-            150, 25, 50,
-
-            //Traseira
-            0, 25, 0,
-            0, 25, 50,
-            0, 75, 0,
-            0, 75, 0,
-            0, 25, 50,
-            0, 75, 50,
-            //Frente
-            150, 75, 0,
-            150, 75, 50,
-            150, 25, 0,
-            150, 75, 50,
-            150, 25, 50,
-            150, 25, 0,
-
-
-            //TopoDoCarro
-            //JanelaTraseiraLateral1
-            0, 25, 0,
-            25, 25, 0,
-            25, 0, 0,
-
-            //JanelaMeioLateral1
-            25, 0, 0,
-            75, 25, 0,
-            75, 0, 0,
-            25, 0, 0,
-            25, 25, 0,
-            75, 25, 0,
-
-            //JanelaFrontalLateral1
-            75, 25, 0,
-            100, 25, 0,
-            75, 0, 0,
-
-            //VidroTraseiro
-            0, 25, 0,
-            25, 0, 0,
-            0, 25, 50,
-            25, 0, 50,
-            0, 25, 50,
-            25, 0, 0,
-
-
-            //JanelaTraseiraLateral2
-            0, 25, 50,
-            25, 0, 50,
-            25, 25, 50,
-
-            //JanelaMeioLateral2
-            25, 0, 50,
-            75, 0, 50,
-            75, 25, 50,
-            25, 0, 50,
-            75, 25, 50,
-            25, 25, 50,
-
-            //JanelaFrontalLateral2
-            75, 25, 50,
-            75, 0, 50,
-            100, 25, 50,
-
-            //VidroFrontal
-            75, 0, 0,
-            100, 25, 0,
-            100, 25, 50,
-            100, 25, 50,
-            75, 0, 50,
-            75, 0, 0,
-
-            //Teto
-            75, 0, 0,
-            75, 0, 50,
-            25, 0, 50,
-            75, 0, 0,
-            25, 0, 50,
-            25, 0, 0,
-        ];
-
-        // Set Geometry.
-        setGeometry(gl, object);
-
-        //Criar um array externo para criar o objeto
-        //na função setGeometry ao invesde passar os valores um a um, passar array do objeto
-        //COLOCAR ISSO EM UMA FUNÇÃO ISOLADA , com um nome tipo setMiddlePoint
-        console.log('Encontrando ponto medio:');
-        var numVertex = 26*3;//o numero de vertices aqui é calculado na mão para o objeto em questão (o carro)
-        var i = 0;
-        var arraySum = [];
-        arraySum[0] = 0;
-        arraySum[1] = 0;
-        arraySum[2] = 0;
-        while (i < numVertex) {//object é o vertex array, cada 3 valores representam um vertex (x,y,z), num vertex é o número de vertices, por isso i*3 
-            arraySum[0] = arraySum[0] + object[i*3 + 0];//soma dos x
-            arraySum[1] = arraySum[1] + object[i*3 + 1];//soma dos y
-            arraySum[2] = arraySum[2] + object[i*3 + 2];//soma dos z
-            i++;
-        }
-        var middlePoint = [];
-        middlePoint[0] = - Math.round(arraySum[0] / numVertex);
-        middlePoint[1] = - Math.round(arraySum[1] / numVertex);
-        middlePoint[2] = - Math.round(arraySum[2] / numVertex);
-        console.log('Num Vertices:'+numVertex);
-        console.log('Ponto medio: [x,y,z =' + middlePoint + ']');
-        console.log('Middle Point!');
-
-        // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-        var size = 3;          // 3 components per iteration
-        var type = gl.FLOAT;   // the data is 32bit floats
-        var normalize = false; // don't normalize the data
-        var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-        var offset = 0;        // start at the beginning of the buffer
-        gl.vertexAttribPointer(
-            positionAttributeLocation, size, type, normalize, stride, offset);
-
-        // create the color buffer, make it the current ARRAY_BUFFER
-        // and copy in the color values
-        var colorBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-        setColors(gl);
-
-        // Turn on the attribute
-        gl.enableVertexAttribArray(colorAttributeLocation);
-
-        // Tell the attribute how to get data out of colorBuffer (ARRAY_BUFFER)
-        var size = 3;          // 3 components per iteration
-        var type = gl.UNSIGNED_BYTE;   // the data is 8bit unsigned bytes
-        var normalize = true;  // convert from 0-255 to 0.0-1.0
-        var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next color
-        var offset = 0;        // start at the beginning of the buffer
-        gl.vertexAttribPointer(
-            colorAttributeLocation, size, type, normalize, stride, offset);
-
-
-        function radToDeg(r) {
-            return r * 180 / Math.PI;
-        }
-
-        function degToRad(d) {
-            return d * Math.PI / 180;
-        }
-
-        // First let's make some variables
-        // to hold the translation,
-        var translation = [0, 0, -360];//Esse primeiro valor de Z coloca o objeto inicialmente dentro do Frustruum 
-        var rotation = [degToRad(200), degToRad(46), degToRad(0)];//inicia com uma rotação qualquer
-        var scale = [1, 1, 1];//escala padrão 1/1/1
-        var fieldOfViewRadians = degToRad(60);//seta um campo de visão inicial
-
-        drawScene();
-
-        // Setup a ui. Toda vez que é interagido com um objeto da UI, é alterado o valor do campo interagido
-        //              então chamada a função que aplica o valor na matriz, e dentro dessa função é chamada
-        //              a função de desenho novamente (drawScene), com os novos valores da matriz
-        webglLessonsUI.setupSlider("#fieldOfView", { value: radToDeg(fieldOfViewRadians), slide: updateFieldOfView, min: 1, max: 179 });
-        webglLessonsUI.setupSlider("#x", { value: translation[0], slide: updatePosition(0), min: -200, max: 200 });
-        webglLessonsUI.setupSlider("#y", { value: translation[1], slide: updatePosition(1), min: -200, max: 200 });
-        webglLessonsUI.setupSlider("#z", { value: translation[2], slide: updatePosition(2), min: -1000, max: 0 });
-        webglLessonsUI.setupSlider("#angleX", { value: radToDeg(rotation[0]), slide: updateRotation(0), max: 360 });
-        webglLessonsUI.setupSlider("#angleY", { value: radToDeg(rotation[1]), slide: updateRotation(1), max: 360 });
-        webglLessonsUI.setupSlider("#angleZ", { value: radToDeg(rotation[2]), slide: updateRotation(2), max: 360 });
-        webglLessonsUI.setupSlider("#scaleX", { value: scale[0], slide: updateScale(0), min: -5, max: 5, step: 0.01, precision: 2 });
-        webglLessonsUI.setupSlider("#scaleY", { value: scale[1], slide: updateScale(1), min: -5, max: 5, step: 0.01, precision: 2 });
-        webglLessonsUI.setupSlider("#scaleZ", { value: scale[2], slide: updateScale(2), min: -5, max: 5, step: 0.01, precision: 2 });
-
-
-        function updateFieldOfView(event, ui) {
-            fieldOfViewRadians = degToRad(ui.value);
-            drawScene();
-        }
-
-        function updatePosition(index) {
-            return function (event, ui) {
-                translation[index] = ui.value;
-                drawScene();
-            };
-        }
-
-        function updateRotation(index) {
-            return function (event, ui) {
-                var angleInDegrees = ui.value;
-                var angleInRadians = degToRad(angleInDegrees);
-                rotation[index] = angleInRadians;
-                drawScene();
-            };
-        }
-
-        function updateScale(index) {
-            return function (event, ui) {
-                scale[index] = ui.value;
-                drawScene();
-            };
-        }
-
-        // Draw the scene.
-        function drawScene() {
-            webglUtils.resizeCanvasToDisplaySize(gl.canvas);
-
-            // Tell WebGL how to convert from clip space to pixels
-            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-
-            // Clear the canvas
-            gl.clearColor(0, 0, 0, 0);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-            // turn on depth testing
-            gl.enable(gl.DEPTH_TEST);
-
-            // tell webgl to cull faces
-            gl.enable(gl.CULL_FACE);
-
-            // Tell it to use our program (pair of shaders)
-            gl.useProgram(program);
-
-            // Bind the attribute/buffer set we want.
-            gl.bindVertexArray(vao);
-
-            var numFs = 5;//Essa variavel vai ser usada para dizer quantos F's ( no meu codigo são os carrinhos)
-                            //serão desenhados na tela, ainda nçao implementei essa parte
-            var radius = 200;
-            // Compute the matrix
-            var moveOriginMatrix = m4.translation(middlePoint[0],middlePoint[1],middlePoint[2]);//move a origem para o ponto medio
-            var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-            var zNear = 1;
-            var zFar = 2000;
-            var matrix = m4.perspective(fieldOfViewRadians, aspect, zNear, zFar);
-            matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
-            matrix = m4.xRotate(matrix, rotation[0]);
-            matrix = m4.yRotate(matrix, rotation[1]);
-            matrix = m4.zRotate(matrix, rotation[2]);
-            matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
-            matrix = m4.multiply(matrix, moveOriginMatrix);//Essa moveOriginMatrix é usada para que as alterações sejam feitas
-                                                            // usando o ponto médio do objeto
-            
-
-            // Set the matrix.
-            gl.uniformMatrix4fv(matrixLocation, false, matrix);
-
-            // Draw the geometry.
-            var primitiveType = gl.TRIANGLES;
-            var offset = 0;
-            var count = 26 * 3;
-            gl.drawArrays(primitiveType, offset, count);
-        }
+Node.prototype.setParent = function(parent) {
+  // remove us from our parent
+  if (this.parent) {
+    var ndx = this.parent.children.indexOf(this);
+    if (ndx >= 0) {
+      this.parent.children.splice(ndx, 1);
     }
+  }
 
-    // Fill the current ARRAY_BUFFER buffer
-    // with the values that define a letter 'F'.
-    function setGeometry(gl,object) {
-        gl.bufferData(
-            gl.ARRAY_BUFFER,
-            new Float32Array(object),
-            gl.STATIC_DRAW);
-    }
+  // Add us to our new parent
+  if (parent) {
+    parent.children.push(this);
+  }
+  this.parent = parent;
+};
 
-    // Fill the current ARRAY_BUFFER buffer with colors for the 'F'.
-    function setColors(gl) {
-        gl.bufferData(
-            gl.ARRAY_BUFFER,
-            new Uint8Array([
-                //lateral1
-                150, 0, 0,
-                150, 0, 0,
-                150, 0, 0,
-                150, 0, 0,
-                150, 0, 0,
-                150, 0, 0,
+Node.prototype.updateWorldMatrix = function(matrix) {
 
-                //fundo
-                0, 125, 0,
-                0, 125, 0,
-                0, 125, 0,
-                0, 125, 0,
-                0, 125, 0,
-                0, 125, 0,
+  var source = this.source;
+  if (source) {
+    source.getMatrix(this.localMatrix);
+  }
 
-                //Lateral2
-                150, 0, 0,
-                150, 0, 0,
-                150, 0, 0,
-                150, 0, 0,
-                150, 0, 0,
-                150, 0, 0,
+  if (matrix) {
+    // a matrix was passed in so do the math
+    m4.multiply(matrix, this.localMatrix, this.worldMatrix);
+  } else {
+    // no matrix was passed in so just copy.
+    m4.copy(this.localMatrix, this.worldMatrix);
+  }
 
-                //Topo
-                0, 0, 150,
-                0, 0, 150,
-                0, 0, 150,
-                0, 0, 150,
-                0, 0, 150,
-                0, 0, 150,
-
-                //Traseira
-                125, 0, 125,
-                125, 0, 125,
-                125, 0, 125,
-                125, 0, 125,
-                125, 0, 125,
-                125, 0, 125,
-
-                //Frente
-                100, 100, 0,
-                100, 100, 0,
-                100, 100, 0,
-                100, 100, 0,
-                100, 100, 0,
-                100, 100, 0,
-
-                //JanelaTraseiraLateral1
-                255, 69, 0,
-                255, 69, 0,
-                255, 69, 0,
-
-                //JanelaMeioLateral1
-                255, 69, 0,
-                255, 69, 0,
-                255, 69, 0,
-                255, 69, 0,
-                255, 69, 0,
-                255, 69, 0,
-
-                //JanelaFrontalLateral1
-                255, 69, 0,
-                255, 69, 0,
-                255, 69, 0,
-
-                //VidroTraseiro
-                0, 125, 0,
-                0, 125, 0,
-                0, 125, 0,
-                0, 125, 0,
-                0, 125, 0,
-                0, 125, 0,
-
-                //JanelaTraseiraLateral2
-                255, 69, 0,
-                255, 69, 0,
-                255, 69, 0,
-
-                //JanelaMeioLateral2
-                255, 69, 0,
-                255, 69, 0,
-                255, 69, 0,
-                255, 69, 0,
-                255, 69, 0,
-                255, 69, 0,
-
-                //JanelaFrontalLateral2
-                255, 69, 0,
-                255, 69, 0,
-                255, 69, 0,
-
-                //VidroFrontal
-                0, 125, 0,
-                0, 125, 0,
-                0, 125, 0,
-                0, 125, 0,
-                0, 125, 0,
-                0, 125, 0,
-
-                //Teto
-                0, 0, 150,
-                0, 0, 150,
-                0, 0, 150,
-                0, 0, 150,
-                0, 0, 150,
-                0, 0, 150,
-            ]),
-            gl.STATIC_DRAW);
-    }
+  // now process all the children
+  var worldMatrix = this.worldMatrix;
+  this.children.forEach(function(child) {
+    child.updateWorldMatrix(worldMatrix);
+  });
+};
 
 
 
-    var m4 = {
+function main() {
+  // Get A WebGL context
+  /** @type {HTMLCanvasElement} */
+  var canvas = document.querySelector("#canvas");
+  var gl = canvas.getContext("webgl2");
+  if (!gl) {
+    return;
+  }
 
-        perspective: function (fieldOfViewInRadians, aspect, near, far) {
-            var f = Math.tan(Math.PI * 0.5 - 0.5 * fieldOfViewInRadians);
-            var rangeInv = 1.0 / (near - far);
+  // Tell the twgl to match position with a_position, n
+  // normal with a_normal etc..
+  twgl.setAttributePrefix("a_");
 
-            return [
-                f / aspect, 0, 0, 0,
-                0, f, 0, 0,
-                0, 0, (near + far) * rangeInv, -1,
-                0, 0, near * far * rangeInv * 2, 0,
-            ];
+  var cubeBufferInfo = flattenedPrimitives.createCubeBufferInfo(gl, 1);
+
+  // setup GLSL program
+  var programInfo = twgl.createProgramInfo(gl, [vs, fs]);
+
+  var cubeVAO = twgl.createVAOFromBufferInfo(gl, programInfo, cubeBufferInfo);
+
+  function degToRad(d) {
+    return d * Math.PI / 180;
+  }
+
+  var fieldOfViewRadians = degToRad(60);
+
+  var objectsToDraw = [];
+  var objects = [];
+  var nodeInfosByName = {};
+
+  // Let's make all the nodes
+  var blockGuyNodeDescriptions =
+    {
+      name: "point between feet",
+      draw: false,
+      children: [
+        {
+           name: "waist",
+           translation: [0, 3, 0],
+           children: [
+             {
+               name: "torso",
+               translation: [0, 2, 0],
+               children: [
+                 {
+                   name: "neck",
+                   translation: [0, 1, 0],
+                   children: [
+                     {
+                       name: "head",
+                       translation: [0, 1, 0],
+                     },
+                   ],
+                 },
+                 {
+                   name: "left-arm",
+                   translation: [-1, 0, 0],
+                   children: [
+                     {
+                       name: "left-forearm",
+                       translation: [-1, 0, 0],
+                       children: [
+                         {
+                           name: "left-hand",
+                           translation: [-1, 0, 0],
+                         },
+                       ],
+                     },
+                   ],
+                 },
+                 {
+                   name: "right-arm",
+                   translation: [1, 0, 0],
+                   children: [
+                     {
+                       name: "right-forearm",
+                       translation: [1, 0, 0],
+                       children: [
+                         {
+                           name: "right-hand",
+                           translation: [1, 0, 0],
+                         },
+                       ],
+                     },
+                   ],
+                 },
+               ],
+             },
+             {
+               name: "left-leg",
+               translation: [-1, -1, 0],
+               children: [
+                 {
+                   name: "left-calf",
+                   translation: [0, -1, 0],
+                   children: [
+                     {
+                       name: "left-foot",
+                       translation: [0, -1, 0],
+                     },
+                   ],
+                 },
+               ],
+             },
+             {
+               name: "right-leg",
+               translation: [1, -1, 0],
+               children: [
+                 {
+                   name: "right-calf",
+                   translation: [0, -1, 0],
+                   children: [
+                     {
+                       name: "right-foot",
+                       translation: [0, -1, 0],
+                     },
+                   ],
+                 },
+               ],
+             },
+           ],
         },
-
-        projection: function (width, height, depth) {
-            // Note: This matrix flips the Y axis so 0 is at the top.
-            return [
-                2 / width, 0, 0, 0,
-                0, -2 / height, 0, 0,
-                0, 0, 2 / depth, 0,
-                -1, 1, 0, 1,
-            ];
-        },
-
-        multiply: function (a, b) {
-            var a00 = a[0 * 4 + 0];
-            var a01 = a[0 * 4 + 1];
-            var a02 = a[0 * 4 + 2];
-            var a03 = a[0 * 4 + 3];
-            var a10 = a[1 * 4 + 0];
-            var a11 = a[1 * 4 + 1];
-            var a12 = a[1 * 4 + 2];
-            var a13 = a[1 * 4 + 3];
-            var a20 = a[2 * 4 + 0];
-            var a21 = a[2 * 4 + 1];
-            var a22 = a[2 * 4 + 2];
-            var a23 = a[2 * 4 + 3];
-            var a30 = a[3 * 4 + 0];
-            var a31 = a[3 * 4 + 1];
-            var a32 = a[3 * 4 + 2];
-            var a33 = a[3 * 4 + 3];
-            var b00 = b[0 * 4 + 0];
-            var b01 = b[0 * 4 + 1];
-            var b02 = b[0 * 4 + 2];
-            var b03 = b[0 * 4 + 3];
-            var b10 = b[1 * 4 + 0];
-            var b11 = b[1 * 4 + 1];
-            var b12 = b[1 * 4 + 2];
-            var b13 = b[1 * 4 + 3];
-            var b20 = b[2 * 4 + 0];
-            var b21 = b[2 * 4 + 1];
-            var b22 = b[2 * 4 + 2];
-            var b23 = b[2 * 4 + 3];
-            var b30 = b[3 * 4 + 0];
-            var b31 = b[3 * 4 + 1];
-            var b32 = b[3 * 4 + 2];
-            var b33 = b[3 * 4 + 3];
-            return [
-                b00 * a00 + b01 * a10 + b02 * a20 + b03 * a30,
-                b00 * a01 + b01 * a11 + b02 * a21 + b03 * a31,
-                b00 * a02 + b01 * a12 + b02 * a22 + b03 * a32,
-                b00 * a03 + b01 * a13 + b02 * a23 + b03 * a33,
-                b10 * a00 + b11 * a10 + b12 * a20 + b13 * a30,
-                b10 * a01 + b11 * a11 + b12 * a21 + b13 * a31,
-                b10 * a02 + b11 * a12 + b12 * a22 + b13 * a32,
-                b10 * a03 + b11 * a13 + b12 * a23 + b13 * a33,
-                b20 * a00 + b21 * a10 + b22 * a20 + b23 * a30,
-                b20 * a01 + b21 * a11 + b22 * a21 + b23 * a31,
-                b20 * a02 + b21 * a12 + b22 * a22 + b23 * a32,
-                b20 * a03 + b21 * a13 + b22 * a23 + b23 * a33,
-                b30 * a00 + b31 * a10 + b32 * a20 + b33 * a30,
-                b30 * a01 + b31 * a11 + b32 * a21 + b33 * a31,
-                b30 * a02 + b31 * a12 + b32 * a22 + b33 * a32,
-                b30 * a03 + b31 * a13 + b32 * a23 + b33 * a33,
-            ];
-        },
-
-        translation: function (tx, ty, tz) {
-            return [
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                tx, ty, tz, 1,
-            ];
-        },
-
-        xRotation: function (angleInRadians) {
-            var c = Math.cos(angleInRadians);
-            var s = Math.sin(angleInRadians);
-
-            return [
-                1, 0, 0, 0,
-                0, c, s, 0,
-                0, -s, c, 0,
-                0, 0, 0, 1,
-            ];
-        },
-
-        yRotation: function (angleInRadians) {
-            var c = Math.cos(angleInRadians);
-            var s = Math.sin(angleInRadians);
-
-            return [
-                c, 0, -s, 0,
-                0, 1, 0, 0,
-                s, 0, c, 0,
-                0, 0, 0, 1,
-            ];
-        },
-
-        zRotation: function (angleInRadians) {
-            var c = Math.cos(angleInRadians);
-            var s = Math.sin(angleInRadians);
-
-            return [
-                c, s, 0, 0,
-                -s, c, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1,
-            ];
-        },
-
-        scaling: function (sx, sy, sz) {
-            return [
-                sx, 0, 0, 0,
-                0, sy, 0, 0,
-                0, 0, sz, 0,
-                0, 0, 0, 1,
-            ];
-        },
-
-        translate: function (m, tx, ty, tz) {
-            return m4.multiply(m, m4.translation(tx, ty, tz));
-        },
-
-        xRotate: function (m, angleInRadians) {
-            return m4.multiply(m, m4.xRotation(angleInRadians));
-        },
-
-        yRotate: function (m, angleInRadians) {
-            return m4.multiply(m, m4.yRotation(angleInRadians));
-        },
-
-        zRotate: function (m, angleInRadians) {
-            return m4.multiply(m, m4.zRotation(angleInRadians));
-        },
-
-        scale: function (m, sx, sy, sz) {
-            return m4.multiply(m, m4.scaling(sx, sy, sz));
-        },
-
+      ],
     };
 
-    main();
+  function makeNode(nodeDescription) {
+    var trs  = new TRS();
+    var node = new Node(trs);
+    nodeInfosByName[nodeDescription.name] = {
+      trs: trs,
+      node: node,
+    };
+    trs.translation = nodeDescription.translation || trs.translation;
+    if (nodeDescription.draw !== false) {
+      node.drawInfo = {
+        uniforms: {
+          u_colorOffset: [0, 0, 0.6, 0],
+          u_colorMult: [0.4, 0.4, 0.4, 1],
+        },
+        programInfo: programInfo,
+        bufferInfo: cubeBufferInfo,
+        vertexArray: cubeVAO,
+      };
+      objectsToDraw.push(node.drawInfo);
+      objects.push(node);
+    }
+    makeNodes(nodeDescription.children).forEach(function(child) {
+      child.setParent(node);
+    });
+    return node;
+  }
+
+  function makeNodes(nodeDescriptions) {
+    return nodeDescriptions ? nodeDescriptions.map(makeNode) : [];
+  }
+
+  var scene = makeNode(blockGuyNodeDescriptions);
+
+  requestAnimationFrame(drawScene);
+
+  // Draw the scene.
+  function drawScene(time) {
+    time *= 0.001;
+
+    twgl.resizeCanvasToDisplaySize(gl.canvas);
+
+    // Tell WebGL how to convert from clip space to pixels
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+    gl.enable(gl.CULL_FACE);
+    gl.enable(gl.DEPTH_TEST);
+
+    // Compute the projection matrix
+    var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+    var projectionMatrix =
+        m4.perspective(fieldOfViewRadians, aspect, 1, 200);
+
+    // Compute the camera's matrix using look at.
+    var cameraPosition = [4, 3.5, 10];
+    var target = [0, 3.5, 0];
+    var up = [0, 1, 0];
+    var cameraMatrix = m4.lookAt(cameraPosition, target, up);
+
+    // Make a view matrix from the camera matrix.
+    var viewMatrix = m4.inverse(cameraMatrix);
+
+    var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
+
+    var adjust;
+    var speed = 3;
+    var c = time * speed;
+    adjust = Math.abs(Math.sin(c));
+    nodeInfosByName["point between feet"].trs.translation[1] = adjust;
+    //nodeInfosByName["point between feet"].trs.translation[0] = c*0.1;
+    adjust = Math.sin(c);
+    nodeInfosByName["left-leg" ].trs.rotation[0] =  adjust;
+    nodeInfosByName["right-leg"].trs.rotation[0] = -adjust;
+    adjust = Math.sin(c + 0.1) * 0.4;
+    nodeInfosByName["left-calf" ].trs.rotation[0] = -adjust;
+    nodeInfosByName["right-calf"].trs.rotation[0] =  adjust;
+    adjust = Math.sin(c + 0.1) * 0.4;
+    nodeInfosByName["left-foot" ].trs.rotation[0] = -adjust;
+    nodeInfosByName["right-foot"].trs.rotation[0] =  adjust;
+
+    adjust = Math.sin(c) * 0.4;
+    nodeInfosByName["left-arm" ].trs.rotation[2] =  adjust;
+    nodeInfosByName["right-arm"].trs.rotation[2] =  adjust;
+    adjust = Math.sin(c + 0.1) * 0.4;
+    nodeInfosByName["left-forearm" ].trs.rotation[2] =  adjust;
+    nodeInfosByName["right-forearm"].trs.rotation[2] =  adjust;
+    adjust = Math.sin(c - 0.1) * 0.4;
+    nodeInfosByName["left-hand" ].trs.rotation[2] =  adjust;
+    nodeInfosByName["right-hand"].trs.rotation[2] =  adjust;
+
+    adjust = Math.sin(c) * 0.4;
+    nodeInfosByName["waist"].trs.rotation[1] =  adjust;
+    adjust = Math.sin(c) * 0.4;
+    nodeInfosByName["torso"].trs.rotation[1] =  adjust;
+    adjust = Math.sin(c + 0.25) * 0.4;
+    nodeInfosByName["neck"].trs.rotation[1] =  adjust;
+    adjust = Math.sin(c + 0.5) * 0.4;
+    nodeInfosByName["head"].trs.rotation[1] =  adjust;
+    adjust = Math.cos(c * 2) * 0.4;
+    nodeInfosByName["head"].trs.rotation[0] =  adjust;
+
+    // Update all world matrices in the scene graph
+    scene.updateWorldMatrix();
+
+    // Compute all the matrices for rendering
+    objects.forEach(function(object) {
+        object.drawInfo.uniforms.u_matrix = m4.multiply(viewProjectionMatrix, object.worldMatrix);
+    });
+
+    // ------ Draw the objects --------
+
+    twgl.drawObjectList(gl, objectsToDraw);
+
+    requestAnimationFrame(drawScene);
+  }
+}
+
+main();
 
 </script>
 

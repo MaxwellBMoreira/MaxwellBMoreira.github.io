@@ -30,6 +30,7 @@ and https://webgl2fundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
 for webgl-utils, m3, m4, and webgl-lessons-ui.
 -->
 <script src="https://greggman.github.io/webgl-lint/webgl-lint.js"></script><!--Script para checar erros WebGL-->
+<script src="https://webgl2fundamentals.org/webgl/resources/twgl-full.min.js"></script>
 <script src="../resources/webgl-utils.js"></script><!--Mantive essa para utilizar os scripts de ferramentas-->
 <script src="../resources/webgl-lessons-ui.js"></script><!--Mantive essa para utilizar os scripts de ferramentas-->
 
@@ -229,8 +230,9 @@ void main() {
 
         //Criar um array externo para criar o objeto
         //na função setGeometry ao invesde passar os valores um a um, passar array do objeto
+        //COLOCAR ISSO EM UMA FUNÇÃO ISOLADA , com um nome tipo setMiddlePoint
         console.log('Encontrando ponto medio:');
-        var numVertex = 26*3;
+        var numVertex = 26*3;//o numero de vertices aqui é calculado na mão para o objeto em questão (o carro)
         var i = 0;
         var arraySum = [];
         arraySum[0] = 0;
@@ -247,8 +249,8 @@ void main() {
         middlePoint[1] = - Math.round(arraySum[1] / numVertex);
         middlePoint[2] = - Math.round(arraySum[2] / numVertex);
         console.log('Num Vertices:'+numVertex);
-        console.log('Ponto medio: [x,y,z ='+middlePoint+']');
-
+        console.log('Ponto medio: [x,y,z =' + middlePoint + ']');
+        console.log('Middle Point!');
 
         // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
         var size = 3;          // 3 components per iteration
@@ -288,14 +290,16 @@ void main() {
 
         // First let's make some variables
         // to hold the translation,
-        var translation = [-150, 0, -360];
-        var rotation = [degToRad(200), degToRad(46), degToRad(0)];
-        var scale = [1, 1, 1];
-        var fieldOfViewRadians = degToRad(60);
+        var translation = [0, 0, -360];//Esse primeiro valor de Z coloca o objeto inicialmente dentro do Frustruum 
+        var rotation = [degToRad(200), degToRad(46), degToRad(0)];//inicia com uma rotação qualquer
+        var scale = [1, 1, 1];//escala padrão 1/1/1
+        var fieldOfViewRadians = degToRad(60);//seta um campo de visão inicial
 
         drawScene();
 
-        // Setup a ui.
+        // Setup a ui. Toda vez que é interagido com um objeto da UI, é alterado o valor do campo interagido
+        //              então chamada a função que aplica o valor na matriz, e dentro dessa função é chamada
+        //              a função de desenho novamente (drawScene), com os novos valores da matriz
         webglLessonsUI.setupSlider("#fieldOfView", { value: radToDeg(fieldOfViewRadians), slide: updateFieldOfView, min: 1, max: 179 });
         webglLessonsUI.setupSlider("#x", { value: translation[0], slide: updatePosition(0), min: -200, max: 200 });
         webglLessonsUI.setupSlider("#y", { value: translation[1], slide: updatePosition(1), min: -200, max: 200 });
@@ -338,7 +342,8 @@ void main() {
 
         // Draw the scene.
         function drawScene() {
-            webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+            
+            twgl.resizeCanvasToDisplaySize(gl.canvas);
 
             // Tell WebGL how to convert from clip space to pixels
             gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -359,6 +364,9 @@ void main() {
             // Bind the attribute/buffer set we want.
             gl.bindVertexArray(vao);
 
+            var numFs = 5;//Essa variavel vai ser usada para dizer quantos F's ( no meu codigo são os carrinhos)
+                            //serão desenhados na tela, ainda nçao implementei essa parte
+            var radius = 200;
             // Compute the matrix
             var moveOriginMatrix = m4.translation(middlePoint[0],middlePoint[1],middlePoint[2]);//move a origem para o ponto medio
             var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
@@ -370,7 +378,8 @@ void main() {
             matrix = m4.yRotate(matrix, rotation[1]);
             matrix = m4.zRotate(matrix, rotation[2]);
             matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
-            matrix = m4.multiply(matrix, moveOriginMatrix);
+            matrix = m4.multiply(matrix, moveOriginMatrix);//Essa moveOriginMatrix é usada para que as alterações sejam feitas
+                                                            // usando o ponto médio do objeto
             
 
             // Set the matrix.
@@ -379,7 +388,7 @@ void main() {
             // Draw the geometry.
             var primitiveType = gl.TRIANGLES;
             var offset = 0;
-            var count = 26 * 3;
+            var count = 26 * 3; //numero de vertices, como sao 26 triangulos no carrinho, então 26*3
             gl.drawArrays(primitiveType, offset, count);
         }
     }
