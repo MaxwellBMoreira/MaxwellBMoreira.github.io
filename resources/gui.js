@@ -12,7 +12,7 @@ const objeto1 = {
 const loadGUI = () => {
   const gui = new dat.GUI();
   gui.add(objeto1, "animate");
-  gui.add(objeto1,"speed", 0, 5, 0.1);
+  gui.add(objeto1,"speed", 0, 6, 0.1);
   gui.add(objeto1, "cameraPosX",-30, 30,0.1);
   gui.add(objeto1,"cameraPosY",-30, 30, 0.1);
   gui.add(objeto1,"cameraPosZ",-30,30,0.1);

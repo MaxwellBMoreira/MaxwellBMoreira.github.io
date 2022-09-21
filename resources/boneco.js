@@ -34,77 +34,11 @@ void main() {
 }
 `;
 
-var TRS = function() {
-  this.translation = [0, 0, 0];
-  this.rotation = [0, 0, 0];
-  this.scale = [1, 1, 1];
-};
-
-TRS.prototype.getMatrix = function(dst) {
-  dst = dst || new Float32Array(16);
-  var t = this.translation;
-  var r = this.rotation;
-  var s = this.scale;
-
-  // compute a matrix from translation, rotation, and scale
-  m4.translation(t[0], t[1], t[2], dst);
-  m4.xRotate(dst, r[0], dst);
-  m4.yRotate(dst, r[1], dst);
-  m4.zRotate(dst, r[2], dst);
-  m4.scale(dst, s[0], s[1], s[2], dst);
-  return dst;
-};
-
-var Node = function(source) {
-  this.children = [];
-  this.localMatrix = m4.identity();
-  this.worldMatrix = m4.identity();
-  this.source = source;
-};
-
-Node.prototype.setParent = function(parent) {
-  // remove us from our parent
-  if (this.parent) {
-    var ndx = this.parent.children.indexOf(this);
-    if (ndx >= 0) {
-      this.parent.children.splice(ndx, 1);
-    }
-  }
-
-  // Add us to our new parent
-  if (parent) {
-    parent.children.push(this);
-  }
-  this.parent = parent;
-};
-
-Node.prototype.updateWorldMatrix = function(matrix) {
-
-  var source = this.source;
-  if (source) {
-    source.getMatrix(this.localMatrix);
-  }
-
-  if (matrix) {
-    // a matrix was passed in so do the math
-    m4.multiply(matrix, this.localMatrix, this.worldMatrix);
-  } else {
-    // no matrix was passed in so just copy.
-    m4.copy(this.localMatrix, this.worldMatrix);
-  }
-
-  // now process all the children
-  var worldMatrix = this.worldMatrix;
-  this.children.forEach(function(child) {
-    child.updateWorldMatrix(worldMatrix);
-  });
-};
-
-
-
 function main() {
   // Get A WebGL context
-  /** @type {HTMLCanvasElement} */
+  /* @type {HTMLCanvasElement} */
+
+  /*original*/
   var canvas = document.querySelector("#canvas");
   var gl = canvas.getContext("webgl2");
   if (!gl) {
@@ -114,12 +48,30 @@ function main() {
   // Tell the twgl to match position with a_position, n
   // normal with a_normal etc..
   twgl.setAttributePrefix("a_");
-
-  var cubeBufferInfo = flattenedPrimitives.createCubeBufferInfo(gl, 1);
-
   // setup GLSL program
   var programInfo = twgl.createProgramInfo(gl, [vs, fs]);
+  
+  
+  /* ao tentar criar essa função de contexto eu recebo o erro abaixo
 
+
+ twgl-full.min.js:6 Uncaught TypeError: Cannot read properties of undefined (reading 'attribSetters')
+    at t.createVAOFromBufferInfo (twgl-full.min.js:6:74429)
+    at main (boneco.js:139:22)
+    at boneco.js:370:1
+t.createVAOFromBufferInfo	@	twgl-full.min.js:6
+main	@	boneco.js:139
+(anonymous)	@	boneco.js:370
+
+
+  
+  const {gl, programInfo} = criaContextoEPrograma(vs,fs);
+  */
+
+
+  
+
+  var cubeBufferInfo = flattenedPrimitives.createCubeBufferInfo(gl, 1);
   var cubeVAO = twgl.createVAOFromBufferInfo(gl, programInfo, cubeBufferInfo);
 
   function degToRad(d) {
