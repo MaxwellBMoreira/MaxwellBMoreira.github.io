@@ -5,21 +5,26 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Maxwell Burke Moreira</title>
-    <link type="text/css" href="css.css" rel="stylesheet" />
+
+    <!-- CSS STYLES-->
+    <link type="text/css" href="/styles/dat.gui.css" rel="stylesheet">
+    <link type="text/css" href="/styles/css.css" rel="stylesheet">
 </head>
 <body>
     <canvas id="canvas"></canvas>
-    <div id="uiContainer">
-        <div id="ui">
-            <div id="fieldOfView"></div>
-            <div id="x"></div>
-            <div id="y"></div>
-            <div id="z"></div>
-            <div id="angleX"></div>
-            <div id="angleY"></div>
-            <div id="angleZ"></div>
-        </div>
-    </div>
+
+    <!-- SCRIPTS-->
+    <script src="https://greggman.github.io/webgl-lint/webgl-lint.js"></script><!--Script para checar erros WebGL-->
+
+    <script src="/resources/twgl-full.min.js"></script>
+    <script src="/resources/webglIni.js"></script>
+    <script src="/resources/m4.js"></script>
+    <script src="/resources/flattened-primitives.js"></script>
+    <script src="/lib/dat.gui.min.js"></script>
+    <script src="/resources/gui.js"></script>
+    <script src="/resources/trs&node.js"></script>
+    <script src="/resources/angleTools.js"></script>
+    <script src="/resources/boneco.js"></script>
 </body>
 </html>
 <!--
@@ -28,6 +33,7 @@ canvas resizing because why clutter the examples with code that's the same in ev
 See https://webgl2fundamentals.org/webgl/lessons/webgl-boilerplate.html
 and https://webgl2fundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
 for webgl-utils, m3, m4, and webgl-lessons-ui.
+<<<<<<< HEAD
 -->
 <script src="https://greggman.github.io/webgl-lint/webgl-lint.js"></script><!--Script para checar erros WebGL-->
 <script src="../resources/webgl-utils.js"></script><!--Mantive essa para utilizar os scripts de ferramentas-->
@@ -672,3 +678,6 @@ void main() {
 
 </script>
 
+=======
+-->
+>>>>>>> firstBranch

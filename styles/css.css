@@ -1,12 +1,11 @@
-@import "/resources/webgl-tutorials.css";
+@import "/styles/webgl-tutorials.css";
 
 body {
     margin: 0;
 }
 
-/*canvas {
+canvas {
     width: 100vw;
     height: 100vh;
     display: block;
 }
-*/
