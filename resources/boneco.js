@@ -1,5 +1,6 @@
-"use strict";
+//"use strict";
 
+/*
 var vs = `#version 300 es
 
 in vec4 a_position;
@@ -33,172 +34,77 @@ void main() {
    outColor = v_color * u_colorMult + u_colorOffset;
 }
 `;
+*/
+ 
 
 function main() {
-  // Get A WebGL context
-  /* @type {HTMLCanvasElement} */
+  //1º passo:
+  //Cria contexto WEBGL e Programa (Vertex Shader + Fragment Shadder)
+  const {gl, programInfo} = makeGLContextAndProgram();
 
-  /*original*/
-  var canvas = document.querySelector("#canvas");
-  var gl = canvas.getContext("webgl2");
-  if (!gl) {
-    return;
-  }
-
-  // Tell the twgl to match position with a_position, n
-  // normal with a_normal etc..
-  twgl.setAttributePrefix("a_");
-  // setup GLSL program
-  var programInfo = twgl.createProgramInfo(gl, [vs, fs]);
-  
-  
-  /* ao tentar criar essa função de contexto eu recebo o erro abaixo
-
-
- twgl-full.min.js:6 Uncaught TypeError: Cannot read properties of undefined (reading 'attribSetters')
-    at t.createVAOFromBufferInfo (twgl-full.min.js:6:74429)
-    at main (boneco.js:139:22)
-    at boneco.js:370:1
-t.createVAOFromBufferInfo	@	twgl-full.min.js:6
-main	@	boneco.js:139
-(anonymous)	@	boneco.js:370
-
-
-  
-  const {gl, programInfo} = criaContextoEPrograma(vs,fs);
-  */
-
-
-  
-
-  var cubeBufferInfo = flattenedPrimitives.createCubeBufferInfo(gl, 1);
+  //2º passo:
+  //criar Buffer do objeto e o VAO que tem: (ContextoWebgl,programa,buffer de objeto)
+  var cubeBufferInfo = flattenedPrimitives.createCubeBufferInfo(gl, 4);
   var cubeVAO = twgl.createVAOFromBufferInfo(gl, programInfo, cubeBufferInfo);
 
-  function degToRad(d) {
-    return d * Math.PI / 180;
-  }
-
-  var fieldOfViewRadians = degToRad(60);
 
   var objectsToDraw = [];
   var objects = [];
   var nodeInfosByName = {};
 
-  // Let's make all the nodes
-  var blockGuyNodeDescriptions =
+  // cria a cena em formato de arvore
+  var sceneDescription =
     {
-      name: "point between feet",
+      name: "origin",
       draw: false,
       children: [
         {
-           name: "waist",
-           translation: [0, 3, 0],
-           children: [
-             {
-               name: "torso",
-               translation: [0, 2, 0],
-               children: [
-                 {
-                   name: "neck",
-                   translation: [0, 1, 0],
-                   children: [
-                     {
-                       name: "head",
-                       translation: [0, 1, 0],
-                     },
-                   ],
-                 },
-                 {
-                   name: "left-arm",
-                   translation: [-1, 0, 0],
-                   children: [
-                     {
-                       name: "left-forearm",
-                       translation: [-1, 0, 0],
-                       children: [
-                         {
-                           name: "left-hand",
-                           translation: [-1, 0, 0],
-                         },
-                       ],
-                     },
-                   ],
-                 },
-                 {
-                   name: "right-arm",
-                   translation: [1, 0, 0],
-                   children: [
-                     {
-                       name: "right-forearm",
-                       translation: [1, 0, 0],
-                       children: [
-                         {
-                           name: "right-hand",
-                           translation: [1, 0, 0],
-                         },
-                       ],
-                     },
-                   ],
-                 },
-               ],
-             },
-             {
-               name: "left-leg",
-               translation: [-1, -1, 0],
-               children: [
-                 {
-                   name: "left-calf",
-                   translation: [0, -1, 0],
-                   children: [
-                     {
-                       name: "left-foot",
-                       translation: [0, -1, 0],
-                     },
-                   ],
-                 },
-               ],
-             },
-             {
-               name: "right-leg",
-               translation: [1, -1, 0],
-               children: [
-                 {
-                   name: "right-calf",
-                   translation: [0, -1, 0],
-                   children: [
-                     {
-                       name: "right-foot",
-                       translation: [0, -1, 0],
-                     },
-                   ],
-                 },
-               ],
-             },
-           ],
+          name: "red",
+          translation: [-10,0,0]
         },
+        {
+          name: "green",
+        },
+        {
+          name: "blue",
+          translation:[10,0,0]
+        }
       ],
     };
 
   function makeNode(nodeDescription) {
     var trs  = new TRS();
     var node = new Node(trs);
+    var actualName = nodeDescription.name;
+
     nodeInfosByName[nodeDescription.name] = {
       trs: trs,
       node: node,
     };
     trs.translation = nodeDescription.translation || trs.translation;
     if (nodeDescription.draw !== false) {
-      node.drawInfo = {
-        uniforms: {
-          u_colorOffset: [0, 0, 0.6, 0],
-          u_colorMult: [0.4, 0.4, 0.4, 1],
-        },
-        programInfo: programInfo,
-        bufferInfo: cubeBufferInfo,
-        vertexArray: cubeVAO,
-      };
-      objectsToDraw.push(node.drawInfo);
-      objects.push(node);
+          node.drawInfo = {
+          uniforms: {
+            u_colorMult: [0, 0, 0, 1],
+            u_matrix: m4.identity(),
+          },
+          programInfo: programInfo,
+          bufferInfo: cubeBufferInfo,
+          vertexArray: cubeVAO,
+        };
+        switch(actualName){
+          case 'red':
+            node.drawInfo.uniforms.u_colorMult = [1, 0, 0, 1];
+            break;
+          case 'green':
+            node.drawInfo.uniforms.u_colorMult = [0, 1, 0, 1];
+            break;
+          case 'blue':
+            node.drawInfo.uniforms.u_colorMult = [0, 0, 1, 1];
+            break;
+        }
+        objectsToDraw.push(node.drawInfo);
+        objects.push(node);    
     }
     makeNodes(nodeDescription.children).forEach(function(child) {
       child.setParent(node);
@@ -210,9 +116,15 @@ main	@	boneco.js:139
     return nodeDescriptions ? nodeDescriptions.map(makeNode) : [];
   }
 
-  var scene = makeNode(blockGuyNodeDescriptions);
+  var scene = makeNode(sceneDescription);
+  
+  //criar lista de objetos e lista de objetos para desenhar (alguns podem não ser desenhados)
+  //cada objeto será um nodo da scena, a origem será um nodo também
 
   loadGUI();
+
+   //Configura FOV
+   var fieldOfViewRadians = degToRad(60);
 
   requestAnimationFrame(drawScene);
 
@@ -235,7 +147,7 @@ main	@	boneco.js:139
 
     // Compute the camera's matrix using look at.
     var cameraPosition = [objeto1.cameraPosX, objeto1.cameraPosY, objeto1.cameraPosZ];
-    var target = [0, 3.5, 0];
+    var target = [0, 0, 0];
     var up = [0, 1, 0];
     var cameraMatrix = m4.lookAt(cameraPosition, target, up);
 
@@ -244,48 +156,15 @@ main	@	boneco.js:139
 
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
 
-    var adjust;
     var speed = objeto1.speed;
     var c = time * speed;
 
     if (objeto1.animate == true)
     {
-      adjust = Math.abs(Math.sin(c));
-      nodeInfosByName["point between feet"].trs.translation[1] = adjust;
-    
-      adjust = Math.sin(c);
-      nodeInfosByName["left-leg" ].trs.rotation[0] =  adjust;
-      nodeInfosByName["right-leg"].trs.rotation[0] = -adjust;
-      adjust = Math.sin(c + 0.1) * 0.4;
-      nodeInfosByName["left-calf" ].trs.rotation[0] = -adjust;
-      nodeInfosByName["right-calf"].trs.rotation[0] =  adjust;
-      adjust = Math.sin(c + 0.1) * 0.4;
-      nodeInfosByName["left-foot" ].trs.rotation[0] = -adjust;
-      nodeInfosByName["right-foot"].trs.rotation[0] =  adjust;
-  
-      adjust = Math.sin(c) * 0.4;
-      nodeInfosByName["left-arm" ].trs.rotation[2] =  adjust;
-      nodeInfosByName["right-arm"].trs.rotation[2] =  adjust;
-      adjust = Math.sin(c + 0.1) * 0.4;
-      nodeInfosByName["left-forearm" ].trs.rotation[2] =  adjust;
-      nodeInfosByName["right-forearm"].trs.rotation[2] =  adjust;
-      adjust = Math.sin(c - 0.1) * 0.4;
-      nodeInfosByName["left-hand" ].trs.rotation[2] =  adjust;
-      nodeInfosByName["right-hand"].trs.rotation[2] =  adjust;
-  
-      adjust = Math.sin(c) * 0.4;
-      nodeInfosByName["waist"].trs.rotation[1] =  adjust;
-      adjust = Math.sin(c) * 0.4;
-      nodeInfosByName["torso"].trs.rotation[1] =  adjust;
-      adjust = Math.sin(c + 0.25) * 0.4;
-      nodeInfosByName["neck"].trs.rotation[1] =  adjust;
-      adjust = Math.sin(c + 0.5) * 0.4;
-      nodeInfosByName["head"].trs.rotation[1] =  adjust;
-      adjust = Math.cos(c * 2) * 0.4;
-      nodeInfosByName["head"].trs.rotation[0] =  adjust;
+      nodeInfosByName["red"].trs.rotation[1]= c;
+      nodeInfosByName["blue"].trs.rotation[1]= c;
+      nodeInfosByName["green"].trs.rotation[1]= c;
     }
-    
-    
 
     // Update all world matrices in the scene graph
     scene.updateWorldMatrix();
@@ -295,8 +174,10 @@ main	@	boneco.js:139
         object.drawInfo.uniforms.u_matrix = m4.multiply(viewProjectionMatrix, object.worldMatrix);
     });
 
+    
+   
+    
     // ------ Draw the objects --------
-
     twgl.drawObjectList(gl, objectsToDraw);
 
     requestAnimationFrame(drawScene);

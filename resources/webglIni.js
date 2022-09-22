@@ -1,4 +1,3 @@
-/*
 var vs = `#version 300 es
 
 in vec4 a_position;
@@ -24,30 +23,27 @@ precision highp float;
 in vec4 v_color;
 
 uniform vec4 u_colorMult;
-uniform vec4 u_colorOffset;
 
 out vec4 outColor;
 
 void main() {
-   outColor = v_color * u_colorMult + u_colorOffset;
+   outColor = v_color * u_colorMult;
 }
 `;
-*/
 
-const criaContextoEPrograma = (vs,fs) => {
-  const canvas = document.querySelector("#canvas");
-  const gl = canvas.getContext("webgl2");
+function makeGLContextAndProgram(){
+
+  var canvas = document.querySelector("#canvas");
+  var gl = canvas.getContext("webgl2");
   if (!gl) {
     return;
   }
+  
   twgl.setAttributePrefix("a_");
-  var  meshProgramInfo = twgl.createProgramInfo(gl, [
-    vs,
-    fs,
-  ]);
+  var programInfo = twgl.createProgramInfo(gl, [vs, fs]);
 
   return {
     gl,
-    meshProgramInfo,
+    programInfo,
   };
-};
+}
