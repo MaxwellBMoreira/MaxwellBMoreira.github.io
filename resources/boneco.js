@@ -60,14 +60,12 @@ function main() {
       children: [
         {
           name: "red",
-          translation: [-10,0,0]
         },
         {
           name: "green",
         },
         {
           name: "blue",
-          translation:[10,0,0]
         }
       ],
     };
@@ -121,7 +119,11 @@ function main() {
   //criar lista de objetos e lista de objetos para desenhar (alguns podem não ser desenhados)
   //cada objeto será um nodo da scena, a origem será um nodo também
 
-  loadGUI();
+  cameraGUI();
+  blueGUI();
+  greenGUI();
+  redGUI();
+
 
    //Configura FOV
    var fieldOfViewRadians = degToRad(60);
@@ -146,7 +148,7 @@ function main() {
         m4.perspective(fieldOfViewRadians, aspect, 1, 200);
 
     // Compute the camera's matrix using look at.
-    var cameraPosition = [objeto1.cameraPosX, objeto1.cameraPosY, objeto1.cameraPosZ];
+    var cameraPosition = [cameraControl.cameraPosX, cameraControl.cameraPosY, cameraControl.cameraPosZ];
     var target = [0, 0, 0];
     var up = [0, 1, 0];
     var cameraMatrix = m4.lookAt(cameraPosition, target, up);
@@ -155,16 +157,17 @@ function main() {
     var viewMatrix = m4.inverse(cameraMatrix);
 
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
+    
+    //controla a animação e velocidade de rotação dos objetos
+    nodeInfosByName["red"].trs.rotation[1]= (time*redControl.speed)*redControl.animate;
+    nodeInfosByName["green"].trs.rotation[1]= (time*greenControl.speed)*greenControl.animate;
+    nodeInfosByName["blue"].trs.rotation[1]= (time*blueControl.speed)*blueControl.animate;
 
-    var speed = objeto1.speed;
-    var c = time * speed;
 
-    if (objeto1.animate == true)
-    {
-      nodeInfosByName["red"].trs.rotation[1]= c;
-      nodeInfosByName["blue"].trs.rotation[1]= c;
-      nodeInfosByName["green"].trs.rotation[1]= c;
-    }
+    nodeInfosByName["red"].trs.translation= [redControl.positionX,redControl.positionY,redControl.positionZ];
+    nodeInfosByName["green"].trs.translation= [greenControl.positionX,greenControl.positionY,greenControl.positionZ];
+    nodeInfosByName["blue"].trs.translation= [blueControl.positionX,blueControl.positionY,blueControl.positionZ];
+
 
     // Update all world matrices in the scene graph
     scene.updateWorldMatrix();
