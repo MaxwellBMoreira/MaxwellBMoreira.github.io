@@ -7,7 +7,7 @@ const cameraControl = {
 
 
 const redControl ={
-  animate: false,
+  animate: true,
   speed : 3,
   positionX: 0,
   positionY: 0,

@@ -9,7 +9,7 @@ function main() {
   //Cria um request para leitura de arquivo
   const request = new XMLHttpRequest();
   //URL do arquivo solicitado
-  const url = "./objects/quad.json";
+  const url = "./objects/d4dice.json";
   //realiza o GET do arquivo (false = força que seja sincrono - estava tendo problemas com leitura assincrona)
   request.open("GET",url,false);
   request.send(null);
@@ -18,8 +18,8 @@ function main() {
     //copia dos dados em formato texto
     let data=request.response;
     //realiza o PARSE para formato JSON
-    //meuObjeto é o objeto que será utilizado
-    var meuObjeto = JSON.parse(data);
+    //objectData cointem os dados (buffers e ID) do objeto a ser carregado
+    var objectData = JSON.parse(data);
   }
   else
   {
@@ -28,14 +28,14 @@ function main() {
   }
 
   //Printa o conteudo do objeto
-  console.log("ObjectID: "+meuObjeto.objID);
-  console.log("Position: "+meuObjeto.arrays.position.data);
-  console.log("UV Coord: "+meuObjeto.arrays.texcoord.data);
-  console.log("Indices: "+meuObjeto.arrays.indices.data);
-  console.log("Colors: "+meuObjeto.arrays.color.data);
+  console.log("ObjectID: "+objectData.objID);
+  console.log("Position: "+objectData.arrays.position.data);
+  console.log("UV Coord: "+objectData.arrays.texcoord.data);
+  console.log("Indices: "+objectData.arrays.indices.data);
+  console.log("Colors: "+objectData.arrays.color.data);
 
   //cria os buffers através do array no objeto recebido
-  var myObjectBufferInfo = twgl.createBufferInfoFromArrays(gl,meuObjeto.arrays)
+  var myObjectBufferInfo = twgl.createBufferInfoFromArrays(gl,objectData.arrays)
   //cria o VAO baseado nos buffers
   var myObjectVAO = twgl.createVAOFromBufferInfo(gl, programInfo, myObjectBufferInfo);
 
@@ -67,7 +67,6 @@ function main() {
   function makeNode(nodeDescription) {
     var trs  = new TRS();
     var node = new Node(trs);
-    var actualName = nodeDescription.name;
 
     nodeInfosByName[nodeDescription.name] = {
       trs: trs,
@@ -77,7 +76,7 @@ function main() {
     if (nodeDescription.draw !== false) {
           node.drawInfo = {
           uniforms: {
-            u_colorMult: [1, 0, 0, 1],
+            u_colorMult: [1, 1, 1, 1],
             u_matrix: m4.identity(),
           },
           programInfo: programInfo,
