@@ -6,8 +6,6 @@ function main() {
   //Cria contexto WEBGL e Programa (Vertex Shader + Fragment Shadder)
   const {gl, programInfo} = makeGLContextAndProgram();
 
-
-  
   //Cria um request para leitura de arquivo
   const request = new XMLHttpRequest();
   //URL do arquivo solicitado
@@ -56,13 +54,13 @@ function main() {
       children: [
         {
           name: "red",
-        },
+        }/*,
         {
           name: "green",
         },
         {
           name: "blue",
-        }
+        }*/
       ],
     };
 
@@ -79,24 +77,13 @@ function main() {
     if (nodeDescription.draw !== false) {
           node.drawInfo = {
           uniforms: {
-            u_colorMult: [0, 0, 0, 1],
+            u_colorMult: [1, 0, 0, 1],
             u_matrix: m4.identity(),
           },
           programInfo: programInfo,
           bufferInfo: myObjectBufferInfo,
           vertexArray: myObjectVAO,
         };
-        switch(actualName){
-          case 'red':
-            node.drawInfo.uniforms.u_colorMult = [1, 0, 0, 1];
-            break;
-          case 'green':
-            node.drawInfo.uniforms.u_colorMult = [0, 1, 0, 1];
-            break;
-          case 'blue':
-            node.drawInfo.uniforms.u_colorMult = [0, 0, 1, 1];
-            break;
-        }
         objectsToDraw.push(node.drawInfo);
         objects.push(node);    
     }
@@ -116,8 +103,8 @@ function main() {
   //cada objeto será um nodo da scena, a origem será um nodo também
 
   cameraGUI();
-  blueGUI();
-  greenGUI();
+  //blueGUI();
+  //greenGUI();
   redGUI();
 
 
@@ -156,17 +143,17 @@ function main() {
     
     //controla a animação e velocidade de rotação dos objetos
     nodeInfosByName["red"].trs.rotation[1]= (time*redControl.speed)*redControl.animate;
-    nodeInfosByName["green"].trs.rotation[1]= (time*greenControl.speed)*greenControl.animate;
-    nodeInfosByName["blue"].trs.rotation[1]= (time*blueControl.speed)*blueControl.animate;
+    //nodeInfosByName["green"].trs.rotation[1]= (time*greenControl.speed)*greenControl.animate;
+    //nodeInfosByName["blue"].trs.rotation[1]= (time*blueControl.speed)*blueControl.animate;
 
 
     nodeInfosByName["red"].trs.translation= [redControl.positionX,redControl.positionY,redControl.positionZ];
-    nodeInfosByName["green"].trs.translation= [greenControl.positionX,greenControl.positionY,greenControl.positionZ];
-    nodeInfosByName["blue"].trs.translation= [blueControl.positionX,blueControl.positionY,blueControl.positionZ];
+    //nodeInfosByName["green"].trs.translation= [greenControl.positionX,greenControl.positionY,greenControl.positionZ];
+    //nodeInfosByName["blue"].trs.translation= [blueControl.positionX,blueControl.positionY,blueControl.positionZ];
 
     nodeInfosByName["red"].trs.scale= [redControl.scale,redControl.scale,redControl.scale];
-    nodeInfosByName["green"].trs.scale= [greenControl.scale,greenControl.scale,greenControl.scale];
-    nodeInfosByName["blue"].trs.scale= [blueControl.scale,blueControl.scale,blueControl.scale];
+    //nodeInfosByName["green"].trs.scale= [greenControl.scale,greenControl.scale,greenControl.scale];
+    //nodeInfosByName["blue"].trs.scale= [blueControl.scale,blueControl.scale,blueControl.scale];
 
 
     // Update all world matrices in the scene graph
