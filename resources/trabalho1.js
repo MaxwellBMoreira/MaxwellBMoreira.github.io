@@ -1,58 +1,54 @@
-//"use strict";
-
-/*
-var vs = `#version 300 es
-
-in vec4 a_position;
-in vec4 a_color;
-
-uniform mat4 u_matrix;
-
-out vec4 v_color;
-
-void main() {
-  // Multiply the position by the matrix.
-  gl_Position = u_matrix * a_position;
-
-  // Pass the color to the fragment shader.
-  v_color = a_color;
-}
-`;
-
-var fs = `#version 300 es
-precision highp float;
-
-// Passed in from the vertex shader.
-in vec4 v_color;
-
-uniform vec4 u_colorMult;
-uniform vec4 u_colorOffset;
-
-out vec4 outColor;
-
-void main() {
-   outColor = v_color * u_colorMult + u_colorOffset;
-}
-`;
-*/
- 
-
 function main() {
+
+"use strict";
+
   //1º passo:
   //Cria contexto WEBGL e Programa (Vertex Shader + Fragment Shadder)
   const {gl, programInfo} = makeGLContextAndProgram();
 
   //2º passo:
   //criar Buffer do objeto e o VAO que tem: (ContextoWebgl,programa,buffer de objeto)
-  var sphereBufferInfo = flattenedPrimitives.createSphereBufferInfo(gl, 4, 12, 8);
-  var cubeBufferInfo   = flattenedPrimitives.createCubeBufferInfo(gl, 4);
-  var coneBufferInfo   = flattenedPrimitives.createTruncatedConeBufferInfo(gl, 3, 0, 4, 15, 1, true, false);
+
+  
+
+  /*
+  async function getObject(){
+    let getResponse = await fetch("./objects/quad.json");
+    const data = await getResponse.json();
+    console.log(data);
+    return data;
+  }*/
+
+  var meuObjeto = {};
+
+  //Cria um request para leitura de arquivo
+  const request = new XMLHttpRequest();
+  //URL do arquivo solicitado
+  const url = "./objects/quad.json";
+  //realiza o GET do arquivo (false = força que seja sincrono - estava tendo problemas com leitura assincrona)
+  request.open("GET",url,false);
+  request.send(null);
+  //se encontrou o arquivo, copia os dados que estao em formato texto e realiza o parse para JSON Object
+  if (request.status === 200) {
+    let data=request.response;
+    meuObjeto=JSON.parse(data);
+  }
+  else
+  {
+    console.log("ERRO NA LEITURA DE ARQUIVO");
+    return;
+  }
+
+  //Printa o conteudo do objeto
+  console.log("ObjectID: "+meuObjeto.objID);
+  console.log("Position: "+meuObjeto.arrays.position.data);
+  console.log("UV Coord: "+meuObjeto.arrays.texcoord.data);
+  console.log("Indices: "+meuObjeto.arrays.indices.data);
+  console.log("Colors: "+meuObjeto.arrays.color.data);
 
 
-  var sphereVAO = twgl.createVAOFromBufferInfo(gl, programInfo, sphereBufferInfo);
-  var cubeVAO   = twgl.createVAOFromBufferInfo(gl, programInfo, cubeBufferInfo);
-  var coneVAO   = twgl.createVAOFromBufferInfo(gl, programInfo, coneBufferInfo);
-
+  var myObjectBufferInfo = twgl.createBufferInfoFromArrays(gl,meuObjeto.arrays)
+  var myObjectVAO = twgl.createVAOFromBufferInfo(gl, programInfo, myObjectBufferInfo);
 
   var objectsToDraw = [];
   var objects = [];
@@ -95,8 +91,8 @@ function main() {
             u_matrix: m4.identity(),
           },
           programInfo: programInfo,
-          bufferInfo: coneBufferInfo,
-          vertexArray: coneVAO,
+          bufferInfo: myObjectBufferInfo,
+          vertexArray: myObjectVAO,
         };
         switch(actualName){
           case 'red':
@@ -147,7 +143,7 @@ function main() {
     // Tell WebGL how to convert from clip space to pixels
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-    gl.enable(gl.CULL_FACE);
+    //gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
 
     // Compute the projection matrix
@@ -175,6 +171,10 @@ function main() {
     nodeInfosByName["red"].trs.translation= [redControl.positionX,redControl.positionY,redControl.positionZ];
     nodeInfosByName["green"].trs.translation= [greenControl.positionX,greenControl.positionY,greenControl.positionZ];
     nodeInfosByName["blue"].trs.translation= [blueControl.positionX,blueControl.positionY,blueControl.positionZ];
+
+    nodeInfosByName["red"].trs.scale= [redControl.scale,redControl.scale,redControl.scale];
+    nodeInfosByName["green"].trs.scale= [greenControl.scale,greenControl.scale,greenControl.scale];
+    nodeInfosByName["blue"].trs.scale= [blueControl.scale,blueControl.scale,blueControl.scale];
 
 
     // Update all world matrices in the scene graph

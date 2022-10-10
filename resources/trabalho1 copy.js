@@ -44,15 +44,22 @@ function main() {
 
   //2º passo:
   //criar Buffer do objeto e o VAO que tem: (ContextoWebgl,programa,buffer de objeto)
-  var cubeBufferInfo = flattenedPrimitives.createCubeBufferInfo(gl, 4);
-  var cubeVAO = twgl.createVAOFromBufferInfo(gl, programInfo, cubeBufferInfo);
+  var sphereBufferInfo = flattenedPrimitives.createSphereBufferInfo(gl, 4, 12, 8);
+  var cubeBufferInfo   = flattenedPrimitives.createCubeBufferInfo(gl, 4);
+  var coneBufferInfo   = flattenedPrimitives.createTruncatedConeBufferInfo(gl, 3, 0, 4, 15, 1, true, false);
+
+
+  var sphereVAO = twgl.createVAOFromBufferInfo(gl, programInfo, sphereBufferInfo);
+  var cubeVAO   = twgl.createVAOFromBufferInfo(gl, programInfo, cubeBufferInfo);
+  var coneVAO   = twgl.createVAOFromBufferInfo(gl, programInfo, coneBufferInfo);
 
 
   var objectsToDraw = [];
   var objects = [];
   var nodeInfosByName = {};
 
-  
+
+
   // cria a cena em formato de arvore
   var sceneDescription =
     {
@@ -88,8 +95,8 @@ function main() {
             u_matrix: m4.identity(),
           },
           programInfo: programInfo,
-          bufferInfo: cubeBufferInfo,
-          vertexArray: cubeVAO,
+          bufferInfo: coneBufferInfo,
+          vertexArray: coneVAO,
         };
         switch(actualName){
           case 'red':
