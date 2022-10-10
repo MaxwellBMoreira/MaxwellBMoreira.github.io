@@ -6,21 +6,8 @@ function main() {
   //Cria contexto WEBGL e Programa (Vertex Shader + Fragment Shadder)
   const {gl, programInfo} = makeGLContextAndProgram();
 
-  //2º passo:
-  //criar Buffer do objeto e o VAO que tem: (ContextoWebgl,programa,buffer de objeto)
 
   
-
-  /*
-  async function getObject(){
-    let getResponse = await fetch("./objects/quad.json");
-    const data = await getResponse.json();
-    console.log(data);
-    return data;
-  }*/
-
-  var meuObjeto = {};
-
   //Cria um request para leitura de arquivo
   const request = new XMLHttpRequest();
   //URL do arquivo solicitado
@@ -30,8 +17,11 @@ function main() {
   request.send(null);
   //se encontrou o arquivo, copia os dados que estao em formato texto e realiza o parse para JSON Object
   if (request.status === 200) {
+    //copia dos dados em formato texto
     let data=request.response;
-    meuObjeto=JSON.parse(data);
+    //realiza o PARSE para formato JSON
+    //meuObjeto é o objeto que será utilizado
+    var meuObjeto = JSON.parse(data);
   }
   else
   {
@@ -46,9 +36,11 @@ function main() {
   console.log("Indices: "+meuObjeto.arrays.indices.data);
   console.log("Colors: "+meuObjeto.arrays.color.data);
 
-
+  //cria os buffers através do array no objeto recebido
   var myObjectBufferInfo = twgl.createBufferInfoFromArrays(gl,meuObjeto.arrays)
+  //cria o VAO baseado nos buffers
   var myObjectVAO = twgl.createVAOFromBufferInfo(gl, programInfo, myObjectBufferInfo);
+
 
   var objectsToDraw = [];
   var objects = [];
