@@ -150,7 +150,7 @@ function main() {
     //nodeInfosByName["green"].trs.translation= [greenControl.positionX,greenControl.positionY,greenControl.positionZ];
     //nodeInfosByName["blue"].trs.translation= [blueControl.positionX,blueControl.positionY,blueControl.positionZ];
 
-    nodeInfosByName["red"].trs.scale= [redControl.scale,redControl.scale,redControl.scale];
+    snodeInfosByName["red"].trs.scale= [redControl.scale,redControl.scale,redControl.scale];
     //nodeInfosByName["green"].trs.scale= [greenControl.scale,greenControl.scale,greenControl.scale];
     //nodeInfosByName["blue"].trs.scale= [blueControl.scale,blueControl.scale,blueControl.scale];
 
