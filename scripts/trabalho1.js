@@ -9,7 +9,7 @@ function main() {
   //Cria um request para leitura de arquivo
   const request = new XMLHttpRequest();
   //URL do arquivo solicitado
-  const url = "./objects/d4dice.json";
+  const url = "./objects/cube.json";
   //realiza o GET do arquivo (false = força que seja sincrono - estava tendo problemas com leitura assincrona)
   request.open("GET",url,false);
   request.send(null);
@@ -150,7 +150,7 @@ function main() {
     //nodeInfosByName["green"].trs.translation= [greenControl.positionX,greenControl.positionY,greenControl.positionZ];
     //nodeInfosByName["blue"].trs.translation= [blueControl.positionX,blueControl.positionY,blueControl.positionZ];
 
-    snodeInfosByName["red"].trs.scale= [redControl.scale,redControl.scale,redControl.scale];
+    nodeInfosByName["red"].trs.scale= [redControl.scale,redControl.scale,redControl.scale];
     //nodeInfosByName["green"].trs.scale= [greenControl.scale,greenControl.scale,greenControl.scale];
     //nodeInfosByName["blue"].trs.scale= [blueControl.scale,blueControl.scale,blueControl.scale];
 
