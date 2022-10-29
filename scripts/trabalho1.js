@@ -1,18 +1,52 @@
-function main() {
+var numberOfObjects;
+var myObjectVAO;
+var myObjectBufferInfo;
+var objectsToDraw;
+var objects;
+var nodeInfosByName;
+var gl,programInfo;
+var sceneDescription;
+var scene;
 
-"use strict";
+function makeNode(nodeDescription) {
+  var trs  = new TRS();
+  var node = new Node(trs);
 
-  //1º passo:
-  //Cria contexto WEBGL e Programa (Vertex Shader + Fragment Shadder)
-  const {gl, programInfo} = makeGLContextAndProgram();
+  nodeInfosByName[nodeDescription.name] = {
+    trs: trs,
+    node: node,
+  };
+  trs.translation = nodeDescription.translation || trs.translation;
+  if (nodeDescription.draw !== false) {
+        node.drawInfo = {
+        uniforms: {
+          u_colorMult: [1, 1, 1, 1],
+          u_matrix: m4.identity(),
+        },
+        programInfo: programInfo,
+        bufferInfo: myObjectBufferInfo,
+        vertexArray: myObjectVAO,
+      };
+      objectsToDraw.push(node.drawInfo);
+      objects.push(node);    
+  }
+  makeNodes(nodeDescription.children).forEach(function(child) {
+    child.setParent(node);
+  });
+  return node;
+}
 
+function makeNodes(nodeDescriptions) {
+  return nodeDescriptions ? nodeDescriptions.map(makeNode) : [];
+}
 
+//funcao que carrega um novo objeto atraves do arquivo
+function loadNewObject(){
   var objectData;
-  var numberOfObjects = 0;
   //Cria um request para leitura de arquivo
   const request = new XMLHttpRequest();
   //URL do arquivo solicitado
-  const url = "./objects/d4dice.json";
+  const url = "./objects/d6dice.json";
   //realiza o GET do arquivo (false = força que seja sincrono - estava tendo problemas com leitura assincrona)
   request.open("GET",url,false);
   request.send(null);
@@ -25,7 +59,6 @@ function main() {
     objectData = JSON.parse(data);
     numberOfObjects++;
     objectData.objID= `10${numberOfObjects}`;
-
   }
   else
   {
@@ -43,76 +76,71 @@ function main() {
 
 
   //cria os buffers através do array no objeto recebido
-  var myObjectBufferInfo = twgl.createBufferInfoFromArrays(gl,objectData.arrays)
+  myObjectBufferInfo = twgl.createBufferInfoFromArrays(gl,objectData.arrays)
   //cria o VAO baseado nos buffers
-  var myObjectVAO = twgl.createVAOFromBufferInfo(gl, programInfo, myObjectBufferInfo);
+  myObjectVAO = twgl.createVAOFromBufferInfo(gl, programInfo, myObjectBufferInfo);
+
+  //insere o objeto na cena
+  addObjectToScene(objectData);
+}
+
+//insere o objeto na cena e recria a cena
+function addObjectToScene(obj){
+
+  sceneDescription.children.push({
+    name: obj.objID,
+    translation: [0,0,0],
+  });
+
+  objectsToDraw = [];
+  objects = [];
+  nodeInfosByName = {};
+  scene = makeNode(sceneDescription);
+}
 
 
-  var objectsToDraw = [];
-  var objects = [];
-  var nodeInfosByName = {};
+function main() {
 
+"use strict";
 
-
-  // cria a cena em formato de arvore
-  var sceneDescription =
-    {
-      name: "origin",
-      draw: false,
-      children: [
-        {
-          name: "red",
-        }/*,
-        {
-          name: "green",
-        },
-        {
-          name: "blue",
-        }*/
-      ],
-    };
-
-  function makeNode(nodeDescription) {
-    var trs  = new TRS();
-    var node = new Node(trs);
-
-    nodeInfosByName[nodeDescription.name] = {
-      trs: trs,
-      node: node,
-    };
-    trs.translation = nodeDescription.translation || trs.translation;
-    if (nodeDescription.draw !== false) {
-          node.drawInfo = {
-          uniforms: {
-            u_colorMult: [1, 1, 1, 1],
-            u_matrix: m4.identity(),
-          },
-          programInfo: programInfo,
-          bufferInfo: myObjectBufferInfo,
-          vertexArray: myObjectVAO,
-        };
-        objectsToDraw.push(node.drawInfo);
-        objects.push(node);    
-    }
-    makeNodes(nodeDescription.children).forEach(function(child) {
-      child.setParent(node);
-    });
-    return node;
-  }
-
-  function makeNodes(nodeDescriptions) {
-    return nodeDescriptions ? nodeDescriptions.map(makeNode) : [];
-  }
-
-  var scene = makeNode(sceneDescription);
+  //1º passo:
+  //Cria contexto WEBGL e Programa (Vertex Shader + Fragment Shadder)
+  gl = makeGlContext();
+  programInfo = makeProgram(gl);
   
-  //criar lista de objetos e lista de objetos para desenhar (alguns podem não ser desenhados)
-  //cada objeto será um nodo da scena, a origem será um nodo também
-
   cameraGUI();
   //blueGUI();
   //greenGUI();
   redGUI();
+
+  numberOfObjects = 0;
+  objectsToDraw = [];
+  objects = [];
+  nodeInfosByName = {};
+
+
+
+  // cria a cena em formato de arvore
+  sceneDescription =
+    {
+      name: "origin",
+      draw: false,
+      children: [],
+    };
+
+
+  scene = makeNode(sceneDescription);
+  console.log("tipo: "+typeof(nodeInfosByName));
+  console.log(nodeInfosByName);
+  
+
+  loadNewObject();
+  
+
+  //addObjectToScene();
+  
+  //criar lista de objetos e lista de objetos para desenhar (alguns podem não ser desenhados)
+  //cada objeto será um nodo da scena, a origem será um nodo também
 
 
    //Configura FOV
@@ -148,18 +176,24 @@ function main() {
 
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
     
+    if(redControl.animate){
+    
+    }
+
     //controla a animação e velocidade de rotação dos objetos
-    nodeInfosByName["red"].trs.rotation[1]= (time*redControl.speed)*redControl.animate;
+    nodeInfosByName["101"].trs.rotation[1]= (time*redControl.speed)*redControl.animate;
+    //console.log(nodeInfosByName);
+    
     //nodeInfosByName["red"].trs.rotation[1]= redControl.rotate;
     //nodeInfosByName["green"].trs.rotation[1]= (time*greenControl.speed)*greenControl.animate;
     //nodeInfosByName["blue"].trs.rotation[1]= (time*blueControl.speed)*blueControl.animate;
 
 
-    nodeInfosByName["red"].trs.translation= [redControl.positionX,redControl.positionY,redControl.positionZ];
+    nodeInfosByName["101"].trs.translation= [redControl.positionX,redControl.positionY,redControl.positionZ];
     //nodeInfosByName["green"].trs.translation= [greenControl.positionX,greenControl.positionY,greenControl.positionZ];
     //nodeInfosByName["blue"].trs.translation= [blueControl.positionX,blueControl.positionY,blueControl.positionZ];
 
-    nodeInfosByName["red"].trs.scale= [redControl.scale,redControl.scale,redControl.scale];
+    nodeInfosByName["101"].trs.scale= [redControl.scale,redControl.scale,redControl.scale];
     //nodeInfosByName["green"].trs.scale= [greenControl.scale,greenControl.scale,greenControl.scale];
     //nodeInfosByName["blue"].trs.scale= [blueControl.scale,blueControl.scale,blueControl.scale];
 

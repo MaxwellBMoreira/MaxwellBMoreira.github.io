@@ -1,3 +1,4 @@
+
 const cameraControl = {
   cameraPosX: 0,
   cameraPosY: 4,
@@ -14,6 +15,9 @@ const redControl ={
   positionZ: 0,
   rotate:0,
   scale: 1,
+  load:function(){
+    loadNewObject();
+  },
 }
 
 const greenControl ={
@@ -51,6 +55,7 @@ const redGUI = () => {
   gui.add(redControl,"positionZ",-30,30,0.1);
   gui.add(redControl,"rotate",0,10,0.1);
   gui.add(redControl,"scale",0,10,0.1);
+  gui.add(redControl,"load");
 }
 
 const greenGUI = () => {

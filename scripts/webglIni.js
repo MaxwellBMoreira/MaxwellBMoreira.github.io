@@ -31,19 +31,19 @@ void main() {
 }
 `;
 
-function makeGLContextAndProgram(){
 
+function makeGlContext(){
   var canvas = document.querySelector("#canvas");
   var gl = canvas.getContext("webgl2");
   if (!gl) {
     return;
   }
-  
+  return gl;
+}
+
+function makeProgram(gl){
   twgl.setAttributePrefix("a_");
   var programInfo = twgl.createProgramInfo(gl, [vs, fs]);
 
-  return {
-    gl,
-    programInfo,
-  };
+return programInfo;
 }
