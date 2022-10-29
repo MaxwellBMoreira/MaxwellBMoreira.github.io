@@ -6,10 +6,13 @@ function main() {
   //Cria contexto WEBGL e Programa (Vertex Shader + Fragment Shadder)
   const {gl, programInfo} = makeGLContextAndProgram();
 
+
+  var objectData;
+  var numberOfObjects = 0;
   //Cria um request para leitura de arquivo
   const request = new XMLHttpRequest();
   //URL do arquivo solicitado
-  const url = "./objects/cube.json";
+  const url = "./objects/d4dice.json";
   //realiza o GET do arquivo (false = força que seja sincrono - estava tendo problemas com leitura assincrona)
   request.open("GET",url,false);
   request.send(null);
@@ -19,7 +22,10 @@ function main() {
     let data=request.response;
     //realiza o PARSE para formato JSON
     //objectData cointem os dados (buffers e ID) do objeto a ser carregado
-    var objectData = JSON.parse(data);
+    objectData = JSON.parse(data);
+    numberOfObjects++;
+    objectData.objID= `10${numberOfObjects}`;
+
   }
   else
   {
@@ -28,11 +34,13 @@ function main() {
   }
 
   //Printa o conteudo do objeto
+  
   console.log("ObjectID: "+objectData.objID);
   console.log("Position: "+objectData.arrays.position.data);
   console.log("UV Coord: "+objectData.arrays.texcoord.data);
   console.log("Indices: "+objectData.arrays.indices.data);
   console.log("Colors: "+objectData.arrays.color.data);
+
 
   //cria os buffers através do array no objeto recebido
   var myObjectBufferInfo = twgl.createBufferInfoFromArrays(gl,objectData.arrays)
@@ -142,6 +150,7 @@ function main() {
     
     //controla a animação e velocidade de rotação dos objetos
     nodeInfosByName["red"].trs.rotation[1]= (time*redControl.speed)*redControl.animate;
+    //nodeInfosByName["red"].trs.rotation[1]= redControl.rotate;
     //nodeInfosByName["green"].trs.rotation[1]= (time*greenControl.speed)*greenControl.animate;
     //nodeInfosByName["blue"].trs.rotation[1]= (time*blueControl.speed)*blueControl.animate;
 

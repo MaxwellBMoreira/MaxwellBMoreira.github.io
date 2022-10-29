@@ -7,11 +7,12 @@ const cameraControl = {
 
 
 const redControl ={
-  animate: true,
+  animate: false,
   speed : 3,
   positionX: 0,
   positionY: 0,
   positionZ: 0,
+  rotate:0,
   scale: 1,
 }
 
@@ -48,6 +49,7 @@ const redGUI = () => {
   gui.add(redControl,"positionX",-30,30,0.1);
   gui.add(redControl,"positionY",-30,30,0.1);
   gui.add(redControl,"positionZ",-30,30,0.1);
+  gui.add(redControl,"rotate",0,10,0.1);
   gui.add(redControl,"scale",0,10,0.1);
 }
 
