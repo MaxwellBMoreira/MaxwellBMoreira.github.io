@@ -3,6 +3,7 @@ var myObjectVAO;
 var myObjectBufferInfo;
 var objectsToDraw;
 var objects;
+var listOfObjId;
 var nodeInfosByName;
 var gl,programInfo;
 var sceneDescription;
@@ -58,7 +59,8 @@ function loadNewObject(){
     //objectData cointem os dados (buffers e ID) do objeto a ser carregado
     objectData = JSON.parse(data);
     numberOfObjects++;
-    objectData.objID= `10${numberOfObjects}`;
+    objectData.objID= `${numberOfObjects}`;
+    listOfObjId.push(objectData.objID);
   }
   else
   {
@@ -82,6 +84,7 @@ function loadNewObject(){
 
   //insere o objeto na cena
   addObjectToScene(objectData);
+  console.log(listOfObjId);
 }
 
 //insere o objeto na cena e recria a cena
@@ -108,15 +111,18 @@ function main() {
   gl = makeGlContext();
   programInfo = makeProgram(gl);
   
-  cameraGUI();
+  //cameraGUI();
   //blueGUI();
   //greenGUI();
-  redGUI();
+  
 
   numberOfObjects = 0;
   objectsToDraw = [];
   objects = [];
+  listOfObjId=[];
   nodeInfosByName = {};
+  
+
 
 
 
@@ -144,13 +150,17 @@ function main() {
 
 
    //Configura FOV
-   var fieldOfViewRadians = degToRad(60);
+  var fieldOfViewRadians = degToRad(60);
 
+  console.log(listOfObjId);
+   
+  interfaceGUI();
   requestAnimationFrame(drawScene);
 
   // Draw the scene.
   function drawScene(time) {
     time *= 0.001;
+    
 
     twgl.resizeCanvasToDisplaySize(gl.canvas);
 
@@ -175,13 +185,19 @@ function main() {
     var viewMatrix = m4.inverse(cameraMatrix);
 
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
-    
-    if(redControl.animate){
-    
+  
+
+    if(objectControl.spin){
+      nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= (time*objectControl.speed)*objectControl.spin;
+    }
+    else
+    {
+      nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= objectControl.rotate;
     }
 
+
     //controla a animação e velocidade de rotação dos objetos
-    nodeInfosByName["101"].trs.rotation[1]= (time*redControl.speed)*redControl.animate;
+    
     //console.log(nodeInfosByName);
     
     //nodeInfosByName["red"].trs.rotation[1]= redControl.rotate;
@@ -189,11 +205,11 @@ function main() {
     //nodeInfosByName["blue"].trs.rotation[1]= (time*blueControl.speed)*blueControl.animate;
 
 
-    nodeInfosByName["101"].trs.translation= [redControl.positionX,redControl.positionY,redControl.positionZ];
+    nodeInfosByName[objectControl.selectedObj].trs.translation= [objectControl.positionX,objectControl.positionY,objectControl.positionZ];
     //nodeInfosByName["green"].trs.translation= [greenControl.positionX,greenControl.positionY,greenControl.positionZ];
     //nodeInfosByName["blue"].trs.translation= [blueControl.positionX,blueControl.positionY,blueControl.positionZ];
 
-    nodeInfosByName["101"].trs.scale= [redControl.scale,redControl.scale,redControl.scale];
+    nodeInfosByName[objectControl.selectedObj].trs.scale= [objectControl.scale,objectControl.scale,objectControl.scale];
     //nodeInfosByName["green"].trs.scale= [greenControl.scale,greenControl.scale,greenControl.scale];
     //nodeInfosByName["blue"].trs.scale= [blueControl.scale,blueControl.scale,blueControl.scale];
 
