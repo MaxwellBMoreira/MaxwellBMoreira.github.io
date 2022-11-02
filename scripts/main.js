@@ -52,7 +52,7 @@ const calculateBarycentric = (length) => {
 function loadNewObject(value){
   var objectData;
   numberOfObjects++;
-  console.clear();
+  //console.clear();
 
   //Cria um request para leitura de arquivo
   const request = new XMLHttpRequest();
@@ -63,10 +63,22 @@ function loadNewObject(value){
       url = "./objects/d6dice.json";
       break;
     case 2:
-      url = "./objects/d4dice.json";
+      url = "./objects/d6dice.json";
       break;
     case 3:
+      url = "./objects/d6dice.json";
+      break;
+    case 4:
+      url = "./objects/d6dice.json";
+      break;
+    case 5:
+      url = "./objects/d4dice.json";
+      break;
+    case 6:
       url = "./objects/car.json";
+      break;
+    case 7:
+      url = "./objects/triangule.json";
       break;
   }
 
@@ -80,6 +92,8 @@ function loadNewObject(value){
     //realiza o PARSE para formato JSON
     //objectData cointem os dados (buffers e ID) do objeto a ser carregado
     objectData = JSON.parse(data);
+    console.log("!!!!!!!!!");
+    console.log(objectData);
     objectData.objID= `${numberOfObjects}`;
     listOfObjId.push(objectData.objID);
   }
@@ -113,8 +127,9 @@ function loadNewObject(value){
     bufferInfo: newObjectBufferInfo,
     vao: newObjectVAO,
   }
-
  
+  loadTexture(value);
+
     console.log('INSERINDO OBJETO - CENA ATUAL');
     console.log('nodeInfosByName');
     console.log(nodeInfosByName);
@@ -161,6 +176,48 @@ function addObjectToScene(obj){
   
     console.log('sceneDescription');
     console.log(sceneDescription);
+}
+
+function loadTexture(value){
+
+  console.log('=====CARREGANDO TEXTURA====');
+  var texture = gl.createTexture();
+
+  // use texture unit 0
+  gl.activeTexture(gl.TEXTURE0 + 0);
+
+  // bind to the TEXTURE_2D bind point of texture unit 0
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+
+  // Fill the texture with a 1x1 blue pixel.
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+                new Uint8Array([0, 0, 255, 255]));
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+
+  // Asynchronously load an image
+  var image = new Image();
+  switch(value){
+    case 1:
+      image.src = "/textures/woodenCrate.png";
+      break;
+    case 2:
+      image.src = "/textures/Nitro.png";
+      break;
+    case 3:
+      image.src = "/textures/TNT.jpg";
+      break;
+    case 4:
+      image.src = "/textures/Life.jpeg";
+      break;
+  }
+  
+  image.addEventListener('load', function() {
+    // Now that the image has loaded make copy it to the texture.
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    console.log(image);
+  });
 }
 
 

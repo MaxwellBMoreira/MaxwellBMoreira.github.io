@@ -21,14 +21,26 @@ const objectControl ={
 }
 
 const sceneControl ={
-  'Load 6 side dice':function(){
+  'Add Wooden Crate':function(){
     loadNewObject(1);
   },
-  'Load 4 side dice':function(){
+  'Add Nitro Crate':function(){
     loadNewObject(2);
   },
-  'Load car':function(){
+  'Add TNT Crate':function(){
     loadNewObject(3);
+  },
+  'Add Life Crate':function(){
+    loadNewObject(4);
+  },
+  'Load 4 side dice':function(){
+    loadNewObject(5);
+  },
+  'Load car':function(){
+    loadNewObject(6);
+  },
+  'Load triangule':function(){
+    loadNewObject(7);
   },
 
 }
@@ -51,9 +63,13 @@ const interfaceGUI = () => {
   
     
   const manipScene = gui.addFolder('Manipulate Scene')
-    manipScene.add(sceneControl,"Load 6 side dice");
+    manipScene.add(sceneControl,"Add Wooden Crate");
+    manipScene.add(sceneControl,"Add Nitro Crate");
+    manipScene.add(sceneControl,"Add TNT Crate");
+    manipScene.add(sceneControl,"Add Life Crate");
     manipScene.add(sceneControl,"Load 4 side dice");
     manipScene.add(sceneControl,"Load car");
+    manipScene.add(sceneControl,"Load triangule");
 
 
   const manipCamera = gui.addFolder('Manipulate Cameras')
