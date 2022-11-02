@@ -110,14 +110,6 @@
                         0.25, 0, 0
                     ]
                     },
-        "texcoord": { 
-                    "numComponents": 2,
-                    "data": [
-                        0, 0, 
-                        0, 1, 
-                        1, 0, 
-                        1, 1]
-                    },
         "color":    { 
                     "numComponents": 4,
                     "data": [
