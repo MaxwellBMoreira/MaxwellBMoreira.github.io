@@ -22,7 +22,7 @@ function makeNode(nodeDescription) {
         node.drawInfo = {
         uniforms: {
           u_colorMult: [1, 1, 1, 1],
-          u_matrix: m4.identity(),
+          //u_matrix: m4.identity(),
         },
         programInfo: programInfo,
         bufferInfo: myObjectBufferInfo,
@@ -41,19 +41,31 @@ function makeNodes(nodeDescriptions) {
   return nodeDescriptions ? nodeDescriptions.map(makeNode) : [];
 }
 
+const calculateBarycentric = (length) => {
+  const n = length / 6;
+  const barycentric = [];
+  for (let i = 0; i < n; i++) barycentric.push(1, 0, 0, 0, 1, 0, 0, 0, 1);
+  return barycentric;
+};
+
 //funcao que carrega um novo objeto atraves do arquivo
 function loadNewObject(value){
   var objectData;
+  numberOfObjects++;
+
   //Cria um request para leitura de arquivo
   const request = new XMLHttpRequest();
   //URL do arquivo solicitado
   let url = "";
   switch(value){
-    case 6:
+    case 1:
       url = "./objects/d6dice.json";
       break;
-    case 4:
+    case 2:
       url = "./objects/d4dice.json";
+      break;
+    case 3:
+      url = "./objects/car.json";
       break;
   }
 
@@ -67,7 +79,6 @@ function loadNewObject(value){
     //realiza o PARSE para formato JSON
     //objectData cointem os dados (buffers e ID) do objeto a ser carregado
     objectData = JSON.parse(data);
-    numberOfObjects++;
     objectData.objID= `${numberOfObjects}`;
     listOfObjId.push(objectData.objID);
   }
@@ -78,8 +89,11 @@ function loadNewObject(value){
   }
 
   //Printa o conteudo do objeto
-  console.log('Objeto adicionado! Infos:');
+  console.log('New OBJ data:');
   console.log(objectData);
+
+
+
 
 
 
@@ -88,26 +102,40 @@ function loadNewObject(value){
   //cria o VAO baseado nos buffers
   myObjectVAO = twgl.createVAOFromBufferInfo(gl, programInfo, myObjectBufferInfo);
 
-  //insere o objeto na cena
-  addObjectToScene(objectData);
-  console.log('Lista de Id de Objetos');
-  console.log(listOfObjId);
+  var newObj = {
+    name: `${numberOfObjects}`,
+    objID: numberOfObjects,
+    translation: [0, 0, 0],
+    children: [],
+    bufferInfo: myObjectBufferInfo,
+    vao: myObjectVAO,
+  }
 
-  console.log('Cena modificada! Info da cena:');
+  //insere o objeto na cena
+  addObjectToScene(newObj);
+
+  console.log('nodeInfosByName');
   console.log(nodeInfosByName);
+
+  console.log('ObjectsToDraw:');
+  console.log(objectsToDraw);
+
+  console.log('Objects:');
+  console.log(objects);
+
+  console.log('sceneDescription');
+  console.log(sceneDescription);
 }
 
 //insere o objeto na cena e recria a cena
 function addObjectToScene(obj){
 
-  sceneDescription.children.push({
-    name: obj.objID,
-    translation: [0,0,0],
-  });
+  sceneDescription.children.push(obj);
 
   objectsToDraw = [];
   objects = [];
   nodeInfosByName = {};
+
   scene = makeNode(sceneDescription);
 }
 
@@ -148,7 +176,7 @@ function main() {
   scene = makeNode(sceneDescription);
   //console.log("tipo: "+typeof(nodeInfosByName));
 
-  loadNewObject(6);
+  loadNewObject(1);
   
 
   //addObjectToScene();
@@ -173,13 +201,12 @@ function main() {
     // Tell WebGL how to convert from clip space to pixels
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-    //gl.enable(gl.CULL_FACE);
+    gl.disable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
 
     // Compute the projection matrix
     var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-    var projectionMatrix =
-        m4.perspective(fieldOfViewRadians, aspect, 1, 200);
+    var projectionMatrix = m4.perspective(fieldOfViewRadians, aspect, 1, 200);
 
     // Compute the camera's matrix using look at.
     var cameraPosition = [cameraControl.cameraPosX, cameraControl.cameraPosY, cameraControl.cameraPosZ];
@@ -198,26 +225,19 @@ function main() {
     }
     else
     {
-      nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= objectControl.rotate;
+      nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= objectControl.rotateY;
     }
 
 
     //controla a animação e velocidade de rotação dos objetos
     
-    //console.log(nodeInfosByName);
-    
-    //nodeInfosByName["red"].trs.rotation[1]= redControl.rotate;
-    //nodeInfosByName["green"].trs.rotation[1]= (time*greenControl.speed)*greenControl.animate;
-    //nodeInfosByName["blue"].trs.rotation[1]= (time*blueControl.speed)*blueControl.animate;
+
 
 
     nodeInfosByName[objectControl.selectedObj].trs.translation= [objectControl.positionX,objectControl.positionY,objectControl.positionZ];
-    //nodeInfosByName["green"].trs.translation= [greenControl.positionX,greenControl.positionY,greenControl.positionZ];
-    //nodeInfosByName["blue"].trs.translation= [blueControl.positionX,blueControl.positionY,blueControl.positionZ];
-
+    nodeInfosByName[objectControl.selectedObj].trs.rotation[0]= objectControl.rotateX;
+    nodeInfosByName[objectControl.selectedObj].trs.rotation[2]= objectControl.rotateZ;
     nodeInfosByName[objectControl.selectedObj].trs.scale= [objectControl.scale,objectControl.scale,objectControl.scale];
-    //nodeInfosByName["green"].trs.scale= [greenControl.scale,greenControl.scale,greenControl.scale];
-    //nodeInfosByName["blue"].trs.scale= [blueControl.scale,blueControl.scale,blueControl.scale];
 
 
     // Update all world matrices in the scene graph

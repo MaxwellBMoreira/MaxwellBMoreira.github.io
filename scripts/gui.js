@@ -13,18 +13,24 @@ const objectControl ={
   positionX: 0,
   positionY: 0,
   positionZ: 0,
-  rotate:0,
+  rotateX: 0,
+  rotateY: 0,
+  rotateZ: 0,
   scale: 1,
 
 }
 
 const sceneControl ={
   'Load 6 side dice':function(){
-    loadNewObject(6);
+    loadNewObject(1);
   },
   'Load 4 side dice':function(){
-    loadNewObject(4);
+    loadNewObject(2);
   },
+  'Load car':function(){
+    loadNewObject(3);
+  },
+
 }
 
 
@@ -38,13 +44,16 @@ const interfaceGUI = () => {
     manipObjFolder.add(objectControl,"positionX",-30,30,0.1).listen();
     manipObjFolder.add(objectControl,"positionY",-30,30,0.1).listen();
     manipObjFolder.add(objectControl,"positionZ",-30,30,0.1).listen();
-    manipObjFolder.add(objectControl,"rotate",0,10,0.1).listen();
+    manipObjFolder.add(objectControl,"rotateX",-6.3,6.3,0.1).listen();
+    manipObjFolder.add(objectControl,"rotateY",-6.3,6.3,0.1).listen();
+    manipObjFolder.add(objectControl,"rotateZ",-6.3,6.3,0.1).listen();
     manipObjFolder.add(objectControl,"scale",0,10,0.1).listen();
   
     
   const manipScene = gui.addFolder('Manipulate Scene')
     manipScene.add(sceneControl,"Load 6 side dice");
     manipScene.add(sceneControl,"Load 4 side dice");
+    manipScene.add(sceneControl,"Load car");
 
 
   const manipCamera = gui.addFolder('Manipulate Cameras')
