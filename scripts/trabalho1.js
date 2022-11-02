@@ -42,12 +42,21 @@ function makeNodes(nodeDescriptions) {
 }
 
 //funcao que carrega um novo objeto atraves do arquivo
-function loadNewObject(){
+function loadNewObject(value){
   var objectData;
   //Cria um request para leitura de arquivo
   const request = new XMLHttpRequest();
   //URL do arquivo solicitado
-  const url = "./objects/d6dice.json";
+  let url = "";
+  switch(value){
+    case 6:
+      url = "./objects/d6dice.json";
+      break;
+    case 4:
+      url = "./objects/d4dice.json";
+      break;
+  }
+
   //realiza o GET do arquivo (false = força que seja sincrono - estava tendo problemas com leitura assincrona)
   request.open("GET",url,false);
   request.send(null);
@@ -69,12 +78,9 @@ function loadNewObject(){
   }
 
   //Printa o conteudo do objeto
-  
-  console.log("ObjectID: "+objectData.objID);
-  console.log("Position: "+objectData.arrays.position.data);
-  console.log("UV Coord: "+objectData.arrays.texcoord.data);
-  console.log("Indices: "+objectData.arrays.indices.data);
-  console.log("Colors: "+objectData.arrays.color.data);
+  console.log('Objeto adicionado! Infos:');
+  console.log(objectData);
+
 
 
   //cria os buffers através do array no objeto recebido
@@ -84,7 +90,11 @@ function loadNewObject(){
 
   //insere o objeto na cena
   addObjectToScene(objectData);
+  console.log('Lista de Id de Objetos');
   console.log(listOfObjId);
+
+  console.log('Cena modificada! Info da cena:');
+  console.log(nodeInfosByName);
 }
 
 //insere o objeto na cena e recria a cena
@@ -136,11 +146,9 @@ function main() {
 
 
   scene = makeNode(sceneDescription);
-  console.log("tipo: "+typeof(nodeInfosByName));
-  console.log(nodeInfosByName);
-  
+  //console.log("tipo: "+typeof(nodeInfosByName));
 
-  loadNewObject();
+  loadNewObject(6);
   
 
   //addObjectToScene();
@@ -151,9 +159,7 @@ function main() {
 
    //Configura FOV
   var fieldOfViewRadians = degToRad(60);
-
-  console.log(listOfObjId);
-   
+ 
   interfaceGUI();
   requestAnimationFrame(drawScene);
 

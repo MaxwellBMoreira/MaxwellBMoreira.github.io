@@ -19,8 +19,11 @@ const objectControl ={
 }
 
 const sceneControl ={
-  'Load Object':function(){
-    loadNewObject();
+  'Load 6 side dice':function(){
+    loadNewObject(6);
+  },
+  'Load 4 side dice':function(){
+    loadNewObject(4);
   },
 }
 
@@ -40,7 +43,8 @@ const interfaceGUI = () => {
   
     
   const manipScene = gui.addFolder('Manipulate Scene')
-    manipScene.add(sceneControl,"Load Object");
+    manipScene.add(sceneControl,"Load 6 side dice");
+    manipScene.add(sceneControl,"Load 4 side dice");
 
 
   const manipCamera = gui.addFolder('Manipulate Cameras')

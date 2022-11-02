@@ -1,6 +1,116 @@
-function testing(){
-  console.log("Alou");
+var numberOfObjects;
+var myObjectVAO;
+var myObjectBufferInfo;
+var objectsToDraw;
+var objects;
+var listOfObjId;
+var nodeInfosByName;
+var gl,programInfo;
+var sceneDescription;
+var scene;
+
+function makeNode(nodeDescription) {
+  var trs  = new TRS();
+  var node = new Node(trs);
+
+  nodeInfosByName[nodeDescription.name] = {
+    trs: trs,
+    node: node,
+  };
+  trs.translation = nodeDescription.translation || trs.translation;
+  if (nodeDescription.draw !== false) {
+        node.drawInfo = {
+        uniforms: {
+          u_colorMult: [1, 1, 1, 1],
+          u_matrix: m4.identity(),
+        },
+        programInfo: programInfo,
+        bufferInfo: myObjectBufferInfo,
+        vertexArray: myObjectVAO,
+      };
+      objectsToDraw.push(node.drawInfo);
+      objects.push(node);    
+  }
+  makeNodes(nodeDescription.children).forEach(function(child) {
+    child.setParent(node);
+  });
+  return node;
 }
+
+function makeNodes(nodeDescriptions) {
+  return nodeDescriptions ? nodeDescriptions.map(makeNode) : [];
+}
+
+//funcao que carrega um novo objeto atraves do arquivo
+function loadNewObject(value){
+  var objectData;
+  //Cria um request para leitura de arquivo
+  const request = new XMLHttpRequest();
+  //URL do arquivo solicitado
+  let url = "";
+  switch(value){
+    case 6:
+      url = "./objects/d6dice.json";
+      break;
+    case 4:
+      url = "./objects/d4dice.json";
+      break;
+  }
+
+  //realiza o GET do arquivo (false = força que seja sincrono - estava tendo problemas com leitura assincrona)
+  request.open("GET",url,false);
+  request.send(null);
+  //se encontrou o arquivo, copia os dados que estao em formato texto e realiza o parse para JSON Object
+  if (request.status === 200) {
+    //copia dos dados em formato texto
+    let data=request.response;
+    //realiza o PARSE para formato JSON
+    //objectData cointem os dados (buffers e ID) do objeto a ser carregado
+    objectData = JSON.parse(data);
+    numberOfObjects++;
+    objectData.objID= `${numberOfObjects}`;
+    listOfObjId.push(objectData.objID);
+  }
+  else
+  {
+    console.log("ERRO NA LEITURA DE ARQUIVO");
+    return;
+  }
+
+  //Printa o conteudo do objeto
+  console.log('Objeto adicionado! Infos:');
+  console.log(objectData);
+
+
+
+  //cria os buffers através do array no objeto recebido
+  myObjectBufferInfo = twgl.createBufferInfoFromArrays(gl,objectData.arrays)
+  //cria o VAO baseado nos buffers
+  myObjectVAO = twgl.createVAOFromBufferInfo(gl, programInfo, myObjectBufferInfo);
+
+  //insere o objeto na cena
+  addObjectToScene(objectData);
+  console.log('Lista de Id de Objetos');
+  console.log(listOfObjId);
+
+  console.log('Cena modificada! Info da cena:');
+  console.log(nodeInfosByName);
+}
+
+//insere o objeto na cena e recria a cena
+function addObjectToScene(obj){
+
+  sceneDescription.children.push({
+    name: obj.objID,
+    translation: [0,0,0],
+  });
+
+  objectsToDraw = [];
+  objects = [];
+  nodeInfosByName = {};
+  scene = makeNode(sceneDescription);
+}
+
 
 function main() {
 
@@ -8,128 +118,37 @@ function main() {
 
   //1º passo:
   //Cria contexto WEBGL e Programa (Vertex Shader + Fragment Shadder)
-  const {gl, programInfo} = makeGLContextAndProgram();
+  gl = makeGlContext();
+  programInfo = makeProgram(gl);
   
-  cameraGUI();
+  //cameraGUI();
   //blueGUI();
   //greenGUI();
-  redGUI();
-
   
-  var numberOfObjects = 0;
 
-  var myObjectVAO;
-  var myObjectBufferInfo;
+  numberOfObjects = 0;
+  objectsToDraw = [];
+  objects = [];
+  listOfObjId=[];
+  nodeInfosByName = {};
+  
 
-
-
-  var objectsToDraw = [];
-  var objects = [];
-  var nodeInfosByName = {};
 
 
 
   // cria a cena em formato de arvore
-  var sceneDescription =
+  sceneDescription =
     {
       name: "origin",
       draw: false,
       children: [],
     };
 
-  
-  function makeNode(nodeDescription) {
-    var trs  = new TRS();
-    var node = new Node(trs);
 
-    nodeInfosByName[nodeDescription.name] = {
-      trs: trs,
-      node: node,
-    };
-    trs.translation = nodeDescription.translation || trs.translation;
-    if (nodeDescription.draw !== false) {
-          node.drawInfo = {
-          uniforms: {
-            u_colorMult: [1, 1, 1, 1],
-            u_matrix: m4.identity(),
-          },
-          programInfo: programInfo,
-          bufferInfo: myObjectBufferInfo,
-          vertexArray: myObjectVAO,
-        };
-        objectsToDraw.push(node.drawInfo);
-        objects.push(node);    
-    }
-    makeNodes(nodeDescription.children).forEach(function(child) {
-      child.setParent(node);
-    });
-    return node;
-  }
+  scene = makeNode(sceneDescription);
+  //console.log("tipo: "+typeof(nodeInfosByName));
 
-  function makeNodes(nodeDescriptions) {
-    return nodeDescriptions ? nodeDescriptions.map(makeNode) : [];
-  }
-
-  var scene = makeNode(sceneDescription);
-  
-
-  //funcao que carrega um novo objeto atraves do arquivo
-  function loadNewObject(){
-    var objectData;
-    //Cria um request para leitura de arquivo
-    const request = new XMLHttpRequest();
-    //URL do arquivo solicitado
-    const url = "./objects/d6dice.json";
-    //realiza o GET do arquivo (false = força que seja sincrono - estava tendo problemas com leitura assincrona)
-    request.open("GET",url,false);
-    request.send(null);
-    //se encontrou o arquivo, copia os dados que estao em formato texto e realiza o parse para JSON Object
-    if (request.status === 200) {
-      //copia dos dados em formato texto
-      let data=request.response;
-      //realiza o PARSE para formato JSON
-      //objectData cointem os dados (buffers e ID) do objeto a ser carregado
-      objectData = JSON.parse(data);
-      numberOfObjects++;
-      objectData.objID= `10${numberOfObjects}`;
-    }
-    else
-    {
-      console.log("ERRO NA LEITURA DE ARQUIVO");
-      return;
-    }
-
-    //Printa o conteudo do objeto
-    
-    console.log("ObjectID: "+objectData.objID);
-    console.log("Position: "+objectData.arrays.position.data);
-    console.log("UV Coord: "+objectData.arrays.texcoord.data);
-    console.log("Indices: "+objectData.arrays.indices.data);
-    console.log("Colors: "+objectData.arrays.color.data);
-
-
-    //cria os buffers através do array no objeto recebido
-    myObjectBufferInfo = twgl.createBufferInfoFromArrays(gl,objectData.arrays)
-    //cria o VAO baseado nos buffers
-    myObjectVAO = twgl.createVAOFromBufferInfo(gl, programInfo, myObjectBufferInfo);
-
-    //insere o objeto na cena
-    addObjectToScene(objectData);
-  }
-
-  //insere o objeto na cena e recria a cena
-  function addObjectToScene(obj){
-
-    sceneDescription.children.push({
-      name: obj.objID,
-      translation: [0,0,0],
-    });
-
-    scene = makeNode(sceneDescription);
-  }
-
-
-  loadNewObject();
+  loadNewObject(6);
   
 
   //addObjectToScene();
@@ -139,13 +158,15 @@ function main() {
 
 
    //Configura FOV
-   var fieldOfViewRadians = degToRad(60);
-
+  var fieldOfViewRadians = degToRad(60);
+ 
+  interfaceGUI();
   requestAnimationFrame(drawScene);
 
   // Draw the scene.
   function drawScene(time) {
     time *= 0.001;
+    
 
     twgl.resizeCanvasToDisplaySize(gl.canvas);
 
@@ -170,19 +191,31 @@ function main() {
     var viewMatrix = m4.inverse(cameraMatrix);
 
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
-    
+  
+
+    if(objectControl.spin){
+      nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= (time*objectControl.speed)*objectControl.spin;
+    }
+    else
+    {
+      nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= objectControl.rotate;
+    }
+
+
     //controla a animação e velocidade de rotação dos objetos
-    nodeInfosByName["101"].trs.rotation[1]= (time*redControl.speed)*redControl.animate;
+    
+    //console.log(nodeInfosByName);
+    
     //nodeInfosByName["red"].trs.rotation[1]= redControl.rotate;
     //nodeInfosByName["green"].trs.rotation[1]= (time*greenControl.speed)*greenControl.animate;
     //nodeInfosByName["blue"].trs.rotation[1]= (time*blueControl.speed)*blueControl.animate;
 
 
-    nodeInfosByName["101"].trs.translation= [redControl.positionX,redControl.positionY,redControl.positionZ];
+    nodeInfosByName[objectControl.selectedObj].trs.translation= [objectControl.positionX,objectControl.positionY,objectControl.positionZ];
     //nodeInfosByName["green"].trs.translation= [greenControl.positionX,greenControl.positionY,greenControl.positionZ];
     //nodeInfosByName["blue"].trs.translation= [blueControl.positionX,blueControl.positionY,blueControl.positionZ];
 
-    nodeInfosByName["101"].trs.scale= [redControl.scale,redControl.scale,redControl.scale];
+    nodeInfosByName[objectControl.selectedObj].trs.scale= [objectControl.scale,objectControl.scale,objectControl.scale];
     //nodeInfosByName["green"].trs.scale= [greenControl.scale,greenControl.scale,greenControl.scale];
     //nodeInfosByName["blue"].trs.scale= [blueControl.scale,blueControl.scale,blueControl.scale];
 
@@ -196,7 +229,7 @@ function main() {
     });
 
     
-   
+   s
     
     // ------ Draw the objects --------
     twgl.drawObjectList(gl, objectsToDraw);
