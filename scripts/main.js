@@ -89,15 +89,26 @@ function loadNewObject(value){
     return;
   }
 
+  objectData.arrays.normals = calculateNormal(objectData.arrays.position,objectData.arrays.indices);
+  objectData.arrays.barycentric = calculateBarycentric(objectData.arrays.position.length);
+  console.log('ObjectData');
+  console.log(objectData);
+
   //cria os buffers através do array no objeto recebido
   newObjectBufferInfo = twgl.createBufferInfoFromArrays(gl,objectData.arrays)
+  console.log('NEW Buffer info');
+  console.log(newObjectBufferInfo);
   //cria o VAO baseado nos buffers
   newObjectVAO = twgl.createVAOFromBufferInfo(gl, programInfo, newObjectBufferInfo);
+  console.log('NEW VAO');
+  console.log(newObjectVAO);
 
   var newObj = {
     name: `${numberOfObjects}`,
     objID: numberOfObjects,
     translation: [0, 0, 0],
+    rotation: [0, 0, 0],
+    scale: [1, 1, 1],
     children: [],
     bufferInfo: newObjectBufferInfo,
     vao: newObjectVAO,
