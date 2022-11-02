@@ -1,6 +1,6 @@
 var numberOfObjects;
-var myObjectVAO;
-var myObjectBufferInfo;
+var newObjectVAO;
+var newObjectBufferInfo;
 var objectsToDraw;
 var objects;
 var listOfObjId;
@@ -25,8 +25,8 @@ function makeNode(nodeDescription) {
           //u_matrix: m4.identity(),
         },
         programInfo: programInfo,
-        bufferInfo: myObjectBufferInfo,
-        vertexArray: myObjectVAO,
+        bufferInfo: nodeDescription.bufferInfo,
+        vertexArray: nodeDescription.vao,
       };
       objectsToDraw.push(node.drawInfo);
       objects.push(node);    
@@ -52,6 +52,7 @@ const calculateBarycentric = (length) => {
 function loadNewObject(value){
   var objectData;
   numberOfObjects++;
+  console.clear();
 
   //Cria um request para leitura de arquivo
   const request = new XMLHttpRequest();
@@ -88,55 +89,67 @@ function loadNewObject(value){
     return;
   }
 
-  //Printa o conteudo do objeto
-  console.log('New OBJ data:');
-  console.log(objectData);
-
-
-
-
-
-
   //cria os buffers através do array no objeto recebido
-  myObjectBufferInfo = twgl.createBufferInfoFromArrays(gl,objectData.arrays)
+  newObjectBufferInfo = twgl.createBufferInfoFromArrays(gl,objectData.arrays)
   //cria o VAO baseado nos buffers
-  myObjectVAO = twgl.createVAOFromBufferInfo(gl, programInfo, myObjectBufferInfo);
+  newObjectVAO = twgl.createVAOFromBufferInfo(gl, programInfo, newObjectBufferInfo);
 
   var newObj = {
     name: `${numberOfObjects}`,
     objID: numberOfObjects,
     translation: [0, 0, 0],
     children: [],
-    bufferInfo: myObjectBufferInfo,
-    vao: myObjectVAO,
+    bufferInfo: newObjectBufferInfo,
+    vao: newObjectVAO,
   }
+
+ 
+    console.log('INSERINDO OBJETO - CENA ATUAL');
+    console.log('nodeInfosByName');
+    console.log(nodeInfosByName);
+  
+    console.log('ObjectsToDraw:');
+    console.log(objectsToDraw);
+  
+    console.log('Objects:');
+    console.log(objects);
+  
+    console.log('sceneDescription');
+    console.log(sceneDescription);
+
+    //Printa o conteudo do objeto
+    console.log('=====New OBJ data:========');
+    console.log(newObj);
 
   //insere o objeto na cena
   addObjectToScene(newObj);
-
-  console.log('nodeInfosByName');
-  console.log(nodeInfosByName);
-
-  console.log('ObjectsToDraw:');
-  console.log(objectsToDraw);
-
-  console.log('Objects:');
-  console.log(objects);
-
-  console.log('sceneDescription');
-  console.log(sceneDescription);
 }
 
 //insere o objeto na cena e recria a cena
 function addObjectToScene(obj){
 
   sceneDescription.children.push(obj);
+  console.log("sceneDescription");
+  console.log(sceneDescription);
 
   objectsToDraw = [];
   objects = [];
   nodeInfosByName = {};
 
   scene = makeNode(sceneDescription);
+
+  console.log('====OBJETO INSERIDO NA CENA - CENA ATUAL');
+    console.log('nodeInfosByName');
+    console.log(nodeInfosByName);
+  
+    console.log('ObjectsToDraw:');
+    console.log(objectsToDraw);
+  
+    console.log('Objects:');
+    console.log(objects);
+  
+    console.log('sceneDescription');
+    console.log(sceneDescription);
 }
 
 
@@ -176,7 +189,7 @@ function main() {
   scene = makeNode(sceneDescription);
   //console.log("tipo: "+typeof(nodeInfosByName));
 
-  loadNewObject(1);
+  //loadNewObject(1);
   
 
   //addObjectToScene();
@@ -189,6 +202,7 @@ function main() {
   var fieldOfViewRadians = degToRad(60);
  
   interfaceGUI();
+  console.log(sceneDescription);
   requestAnimationFrame(drawScene);
 
   // Draw the scene.
@@ -220,39 +234,36 @@ function main() {
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
   
 
-    if(objectControl.spin){
-      nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= (time*objectControl.speed)*objectControl.spin;
+    if(sceneDescription.children.length!=0){//Verifica se a cena não esta vazia
+      if(objectControl.spin){
+        nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= (time*objectControl.speed)*objectControl.spin;
+      }
+      else
+      {
+        nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= objectControl.rotateY;
+      }
+  
+  
+      //controla a animação e velocidade de rotação dos objetos
+      nodeInfosByName[objectControl.selectedObj].trs.translation= [objectControl.positionX,objectControl.positionY,objectControl.positionZ];
+      nodeInfosByName[objectControl.selectedObj].trs.rotation[0]= objectControl.rotateX;
+      nodeInfosByName[objectControl.selectedObj].trs.rotation[2]= objectControl.rotateZ;
+      nodeInfosByName[objectControl.selectedObj].trs.scale= [objectControl.scale,objectControl.scale,objectControl.scale];
+  
+  
+      // Update all world matrices in the scene graph
+      scene.updateWorldMatrix();
+  
+      // Compute all the matrices for rendering
+      objects.forEach(function(object) {
+          object.drawInfo.uniforms.u_matrix = m4.multiply(viewProjectionMatrix, object.worldMatrix);
+      });
+  
+      
+      // ------ Draw the objects --------
+      twgl.drawObjectList(gl, objectsToDraw);
     }
-    else
-    {
-      nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= objectControl.rotateY;
-    }
-
-
-    //controla a animação e velocidade de rotação dos objetos
     
-
-
-
-    nodeInfosByName[objectControl.selectedObj].trs.translation= [objectControl.positionX,objectControl.positionY,objectControl.positionZ];
-    nodeInfosByName[objectControl.selectedObj].trs.rotation[0]= objectControl.rotateX;
-    nodeInfosByName[objectControl.selectedObj].trs.rotation[2]= objectControl.rotateZ;
-    nodeInfosByName[objectControl.selectedObj].trs.scale= [objectControl.scale,objectControl.scale,objectControl.scale];
-
-
-    // Update all world matrices in the scene graph
-    scene.updateWorldMatrix();
-
-    // Compute all the matrices for rendering
-    objects.forEach(function(object) {
-        object.drawInfo.uniforms.u_matrix = m4.multiply(viewProjectionMatrix, object.worldMatrix);
-    });
-
-    
-   
-    
-    // ------ Draw the objects --------
-    twgl.drawObjectList(gl, objectsToDraw);
 
     requestAnimationFrame(drawScene);
   }
