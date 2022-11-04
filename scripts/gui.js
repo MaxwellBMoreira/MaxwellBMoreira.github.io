@@ -8,6 +8,7 @@ const cameraControl = {
 
 const objectControl ={
   selectedObj: 1,
+  tudogira: false,
   spin: false,
   speed : 3,
   positionX: 0,
@@ -21,7 +22,7 @@ const objectControl ={
 }
 
 const sceneControl ={
-  'Add Wooden Crate':function(){
+  'Add Wood Crate':function(){
     loadNewObject(1);
   },
   'Add Nitro Crate':function(){
@@ -51,6 +52,7 @@ const interfaceGUI = () => {
   
   const manipObjFolder = gui.addFolder('Manipulate Objects')
     manipObjFolder.add(objectControl,"selectedObj",[1,2,3,4,5,6,7,8,9]);
+    manipObjFolder.add(objectControl,"tudogira");
     manipObjFolder.add(objectControl,"spin").listen();
     manipObjFolder.add(objectControl,"speed", 0, 6, 0.1).listen();
     manipObjFolder.add(objectControl,"positionX",-30,30,0.1).listen();
@@ -63,7 +65,7 @@ const interfaceGUI = () => {
   
     
   const manipScene = gui.addFolder('Manipulate Scene')
-    manipScene.add(sceneControl,"Add Wooden Crate");
+    manipScene.add(sceneControl,"Add Wood Crate");
     manipScene.add(sceneControl,"Add Nitro Crate");
     manipScene.add(sceneControl,"Add TNT Crate");
     manipScene.add(sceneControl,"Add Life Crate");

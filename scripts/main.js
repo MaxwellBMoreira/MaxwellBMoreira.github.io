@@ -8,6 +8,10 @@ var nodeInfosByName;
 var gl,programInfo;
 var sceneDescription;
 var scene;
+var ii;
+var tex;
+var myTexturesArray;
+var newObjTexture;
 
 function makeNode(nodeDescription) {
   var trs  = new TRS();
@@ -22,7 +26,8 @@ function makeNode(nodeDescription) {
         node.drawInfo = {
         uniforms: {
           u_colorMult: [1, 1, 1, 1],
-          //u_matrix: m4.identity(),
+          u_texture: nodeDescription.texture,
+          u_matrix: m4.identity(),
         },
         programInfo: programInfo,
         bufferInfo: nodeDescription.bufferInfo,
@@ -38,6 +43,8 @@ function makeNode(nodeDescription) {
 }
 
 function makeNodes(nodeDescriptions) {
+  console.log("!!!!!!!!!!!!!!!");
+  console.log(nodeDescriptions);
   return nodeDescriptions ? nodeDescriptions.map(makeNode) : [];
 }
 
@@ -92,8 +99,6 @@ function loadNewObject(value){
     //realiza o PARSE para formato JSON
     //objectData cointem os dados (buffers e ID) do objeto a ser carregado
     objectData = JSON.parse(data);
-    console.log("!!!!!!!!!");
-    console.log(objectData);
     objectData.objID= `${numberOfObjects}`;
     listOfObjId.push(objectData.objID);
   }
@@ -105,17 +110,13 @@ function loadNewObject(value){
 
   objectData.arrays.normals = calculateNormal(objectData.arrays.position,objectData.arrays.indices);
   objectData.arrays.barycentric = calculateBarycentric(objectData.arrays.position.length);
-  console.log('ObjectData');
-  console.log(objectData);
 
   //cria os buffers através do array no objeto recebido
   newObjectBufferInfo = twgl.createBufferInfoFromArrays(gl,objectData.arrays)
-  console.log('NEW Buffer info');
-  console.log(newObjectBufferInfo);
   //cria o VAO baseado nos buffers
   newObjectVAO = twgl.createVAOFromBufferInfo(gl, programInfo, newObjectBufferInfo);
-  console.log('NEW VAO');
-  console.log(newObjectVAO);
+  newObjTexture = myTexturesArray[value];
+
 
   var newObj = {
     name: `${numberOfObjects}`,
@@ -124,24 +125,12 @@ function loadNewObject(value){
     rotation: [0, 0, 0],
     scale: [1, 1, 1],
     children: [],
+    texture: myTexturesArray[value-1],
     bufferInfo: newObjectBufferInfo,
     vao: newObjectVAO,
   }
  
-  loadTexture(value);
-
-    console.log('INSERINDO OBJETO - CENA ATUAL');
-    console.log('nodeInfosByName');
-    console.log(nodeInfosByName);
-  
-    console.log('ObjectsToDraw:');
-    console.log(objectsToDraw);
-  
-    console.log('Objects:');
-    console.log(objects);
-  
-    console.log('sceneDescription');
-    console.log(sceneDescription);
+  //loadTextures(value);
 
     //Printa o conteudo do objeto
     console.log('=====New OBJ data:========');
@@ -152,35 +141,33 @@ function loadNewObject(value){
 }
 
 //insere o objeto na cena e recria a cena
-function addObjectToScene(obj){
+function addObjectToScene(obj,value){
 
   sceneDescription.children.push(obj);
-  console.log("sceneDescription");
-  console.log(sceneDescription);
 
   objectsToDraw = [];
   objects = [];
   nodeInfosByName = {};
 
-  scene = makeNode(sceneDescription);
+  scene = makeNode(sceneDescription,value);
 
   console.log('====OBJETO INSERIDO NA CENA - CENA ATUAL');
-    console.log('nodeInfosByName');
-    console.log(nodeInfosByName);
+  console.log('nodeInfosByName');
+  console.log(nodeInfosByName);
   
-    console.log('ObjectsToDraw:');
-    console.log(objectsToDraw);
+  console.log('ObjectsToDraw:');
+  console.log(objectsToDraw);
   
-    console.log('Objects:');
-    console.log(objects);
+  console.log('Objects:');
+  console.log(objects);
   
-    console.log('sceneDescription');
-    console.log(sceneDescription);
+  console.log('sceneDescription');
+  console.log(sceneDescription);
 }
 
-function loadTexture(value){
+/*function loadTextures(value){
 
-  console.log('=====CARREGANDO TEXTURA====');
+  console.log('=====CARREGANDO TEXTURAS====');
   var texture = gl.createTexture();
 
   // use texture unit 0
@@ -198,16 +185,16 @@ function loadTexture(value){
   var image = new Image();
   switch(value){
     case 1:
-      image.src = "/textures/woodenCrate.png";
+      image.src = "/textures/woodcrate.png";
       break;
     case 2:
-      image.src = "/textures/Nitro.png";
+      image.src = "/textures/nitro.png";
       break;
     case 3:
-      image.src = "/textures/TNT.jpg";
+      image.src = "/textures/tnt.jpg";
       break;
     case 4:
-      image.src = "/textures/Life.jpeg";
+      image.src = "/textures/life.jpeg";
       break;
   }
   
@@ -216,15 +203,36 @@ function loadTexture(value){
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
     gl.generateMipmap(gl.TEXTURE_2D);
-    console.log(image);
+    console.log(texture);
   });
-}
+}*/
 
+function loadTextures2(){
+  console.log('CARREGANDO VARIOS TEXTURAS');
+
+  tex = twgl.createTextures(gl, {crate:{src:"/textures/woodcrate.png"},
+                                nitro:{src:"/textures/nitro.png"},
+                                tnt:{src:"/textures/tnt.jpg"},
+                                life:{src:"/textures/life.jpeg"}});
+
+  myTexturesArray =[
+    tex.crate,
+    tex.nitro,
+    tex.tnt,
+    tex.life
+  ]
+  console.log("printa carai!")
+  console.log(tex.crate.src);
+  console.log(tex.tnt.src);
+  console.log(myTexturesArray);
+
+}
 
 function main() {
 
 "use strict";
 
+var x = 0;
   //1º passo:
   //Cria contexto WEBGL e Programa (Vertex Shader + Fragment Shadder)
   gl = makeGlContext();
@@ -240,6 +248,7 @@ function main() {
   objects = [];
   listOfObjId=[];
   nodeInfosByName = {};
+  myTexturesArray = [];
   
 
 
@@ -271,6 +280,8 @@ function main() {
  
   interfaceGUI();
   console.log(sceneDescription);
+  //loadTextures(1);
+  loadTextures2();
   requestAnimationFrame(drawScene);
 
   // Draw the scene.
@@ -303,13 +314,22 @@ function main() {
   
 
     if(sceneDescription.children.length!=0){//Verifica se a cena não esta vazia
-      if(objectControl.spin){
-        nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= (time*objectControl.speed)*objectControl.spin;
+      if(objectControl.tudogira){
+        for(ii=1;ii<=numberOfObjects;ii++){
+          nodeInfosByName[ii].trs.rotation[1]= (time*objectControl.speed)*objectControl.tudogira;
+        }
+
+      }else{
+        if(objectControl.spin){
+          nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= (time*objectControl.speed)*objectControl.spin;
+        }
+        else
+        {
+          nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= objectControl.rotateY;
+        }
       }
-      else
-      {
-        nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= objectControl.rotateY;
-      }
+      
+     
   
   
       //controla a animação e velocidade de rotação dos objetos
@@ -325,9 +345,17 @@ function main() {
       // Compute all the matrices for rendering
       objects.forEach(function(object) {
           object.drawInfo.uniforms.u_matrix = m4.multiply(viewProjectionMatrix, object.worldMatrix);
+          //twgl.setTextureFromElement(gl, tex.crate, canvas);
       });
+
+     
   
       
+
+      if(x==0){
+        console.log(objectsToDraw);
+        x=1;
+      }
       // ------ Draw the objects --------
       twgl.drawObjectList(gl, objectsToDraw);
     }

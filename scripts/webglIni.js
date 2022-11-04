@@ -38,6 +38,22 @@ void main() {
 }
 `;//vertex TEXTURE shader
 
+var vTs2 = `#version 300 es
+uniform mat4 u_worldViewProjection;
+
+in vec4 a_position;
+in vec2 a_texcoord;
+
+uniform mat4 u_matrix;
+
+out vec4 v_position;
+out vec2 v_texCoord;
+
+void main() {
+  v_texCoord = a_texcoord;
+  gl_Position = u_worldViewProjection * a_position;
+}
+`;//another textures vertex shader
 
 var fs = `#version 300 es
 precision highp float;
@@ -71,6 +87,25 @@ void main() {
   outColor = texture(u_texture, v_texcoord);
 }
 `;//fragment TEXTURE shader
+
+var fTs2= `#version 300 es
+precision mediump float;
+
+in vec4 v_position;
+in vec2 v_texCoord;
+
+uniform vec4 u_diffuseMult;
+uniform sampler2D u_diffuse;
+
+void main() {
+  vec4 diffuseColor = texture2D(u_diffuse, v_texCoord) * u_diffuseMult;
+  if (diffuseColor.a < 0.1) {
+    discard;
+  }
+  gl_FragColor = diffuseColor;
+}
+`;//fragment TEXTURE shader
+
 
 
 function makeGlContext(){
