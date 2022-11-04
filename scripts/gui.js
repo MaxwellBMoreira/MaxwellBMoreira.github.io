@@ -23,25 +23,25 @@ const objectControl ={
 
 const sceneControl ={
   'Add Wood Crate':function(){
-    loadNewObject(1);
+    loadNewObject(0,0);
   },
   'Add Nitro Crate':function(){
-    loadNewObject(2);
+    loadNewObject(0,1);
   },
   'Add TNT Crate':function(){
-    loadNewObject(3);
+    loadNewObject(0,2);
   },
   'Add Life Crate':function(){
-    loadNewObject(4);
+    loadNewObject(0,3);
   },
   'Load 4 side dice':function(){
-    loadNewObject(5);
+    loadNewObject(1,4);
   },
-  'Load car':function(){
-    loadNewObject(6);
-  },
+ /* 'Load car':function(){
+    loadNewObject();
+  },*/
   'Load triangule':function(){
-    loadNewObject(7);
+    loadNewObject(2,5);
   },
 
 }
@@ -70,7 +70,7 @@ const interfaceGUI = () => {
     manipScene.add(sceneControl,"Add TNT Crate");
     manipScene.add(sceneControl,"Add Life Crate");
     manipScene.add(sceneControl,"Load 4 side dice");
-    manipScene.add(sceneControl,"Load car");
+    //manipScene.add(sceneControl,"Load car");
     manipScene.add(sceneControl,"Load triangule");
 
 

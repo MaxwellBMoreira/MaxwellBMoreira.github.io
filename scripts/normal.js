@@ -1,7 +1,7 @@
 const calculateNormal = (position, indices) => {
     let pontos = []
     let faces = []
-    let resultado
+    let resultado;
     
     for (let i = 0; i < position.length; i += 3) {
         pontos.push([position[i], position[i+1],position[i+2]])

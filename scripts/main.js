@@ -11,7 +11,8 @@ var scene;
 var ii;
 var tex;
 var myTexturesArray;
-var newObjTexture;
+var bufferInfoArray;
+var vaoArray;
 
 function makeNode(nodeDescription) {
   var trs  = new TRS();
@@ -34,7 +35,7 @@ function makeNode(nodeDescription) {
         vertexArray: nodeDescription.vao,
       };
       objectsToDraw.push(node.drawInfo);
-      objects.push(node);    
+      objects.push(node);
   }
   makeNodes(nodeDescription.children).forEach(function(child) {
     child.setParent(node);
@@ -43,11 +44,11 @@ function makeNode(nodeDescription) {
 }
 
 function makeNodes(nodeDescriptions) {
-  console.log("!!!!!!!!!!!!!!!");
-  console.log(nodeDescriptions);
   return nodeDescriptions ? nodeDescriptions.map(makeNode) : [];
 }
 
+
+//Calcula as baricentricas dos arrays
 const calculateBarycentric = (length) => {
   const n = length / 6;
   const barycentric = [];
@@ -56,67 +57,12 @@ const calculateBarycentric = (length) => {
 };
 
 //funcao que carrega um novo objeto atraves do arquivo
-function loadNewObject(value){
-  var objectData;
+function loadNewObject(objShape,objTexture){
+  
+  //limpa o console para ver os dados
+  console.clear()
+
   numberOfObjects++;
-  //console.clear();
-
-  //Cria um request para leitura de arquivo
-  const request = new XMLHttpRequest();
-  //URL do arquivo solicitado
-  let url = "";
-  switch(value){
-    case 1:
-      url = "./objects/d6dice.json";
-      break;
-    case 2:
-      url = "./objects/d6dice.json";
-      break;
-    case 3:
-      url = "./objects/d6dice.json";
-      break;
-    case 4:
-      url = "./objects/d6dice.json";
-      break;
-    case 5:
-      url = "./objects/d4dice.json";
-      break;
-    case 6:
-      url = "./objects/car.json";
-      break;
-    case 7:
-      url = "./objects/triangule.json";
-      break;
-  }
-
-  //realiza o GET do arquivo (false = força que seja sincrono - estava tendo problemas com leitura assincrona)
-  request.open("GET",url,false);
-  request.send(null);
-  //se encontrou o arquivo, copia os dados que estao em formato texto e realiza o parse para JSON Object
-  if (request.status === 200) {
-    //copia dos dados em formato texto
-    let data=request.response;
-    //realiza o PARSE para formato JSON
-    //objectData cointem os dados (buffers e ID) do objeto a ser carregado
-    objectData = JSON.parse(data);
-    objectData.objID= `${numberOfObjects}`;
-    listOfObjId.push(objectData.objID);
-  }
-  else
-  {
-    console.log("ERRO NA LEITURA DE ARQUIVO");
-    return;
-  }
-
-  objectData.arrays.normals = calculateNormal(objectData.arrays.position,objectData.arrays.indices);
-  objectData.arrays.barycentric = calculateBarycentric(objectData.arrays.position.length);
-
-  //cria os buffers através do array no objeto recebido
-  newObjectBufferInfo = twgl.createBufferInfoFromArrays(gl,objectData.arrays)
-  //cria o VAO baseado nos buffers
-  newObjectVAO = twgl.createVAOFromBufferInfo(gl, programInfo, newObjectBufferInfo);
-  newObjTexture = myTexturesArray[value];
-
 
   var newObj = {
     name: `${numberOfObjects}`,
@@ -125,23 +71,23 @@ function loadNewObject(value){
     rotation: [0, 0, 0],
     scale: [1, 1, 1],
     children: [],
-    texture: myTexturesArray[value-1],
-    bufferInfo: newObjectBufferInfo,
-    vao: newObjectVAO,
+    texture: myTexturesArray[objTexture],
+    bufferInfo: bufferInfoArray[objShape],
+    vao: vaoArray[objShape],
   }
  
-  //loadTextures(value);
 
-    //Printa o conteudo do objeto
-    console.log('=====New OBJ data:========');
-    console.log(newObj);
+
+  //Printa o conteudo do objeto
+  console.log('Inserindo novo objeto na cena! Dados do objeto:');
+  console.log(newObj);
 
   //insere o objeto na cena
   addObjectToScene(newObj);
 }
 
 //insere o objeto na cena e recria a cena
-function addObjectToScene(obj,value){
+function addObjectToScene(obj){
 
   sceneDescription.children.push(obj);
 
@@ -149,9 +95,9 @@ function addObjectToScene(obj,value){
   objects = [];
   nodeInfosByName = {};
 
-  scene = makeNode(sceneDescription,value);
+  scene = makeNode(sceneDescription);
 
-  console.log('====OBJETO INSERIDO NA CENA - CENA ATUAL');
+  console.log('_______Situação atual dos arrays_______');
   console.log('nodeInfosByName');
   console.log(nodeInfosByName);
   
@@ -165,74 +111,78 @@ function addObjectToScene(obj,value){
   console.log(sceneDescription);
 }
 
-/*function loadTextures(value){
-
-  console.log('=====CARREGANDO TEXTURAS====');
-  var texture = gl.createTexture();
-
-  // use texture unit 0
-  gl.activeTexture(gl.TEXTURE0 + 0);
-
-  // bind to the TEXTURE_2D bind point of texture unit 0
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-
-  // Fill the texture with a 1x1 blue pixel.
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
-                new Uint8Array([0, 0, 255, 255]));
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-
-  // Asynchronously load an image
-  var image = new Image();
-  switch(value){
-    case 1:
-      image.src = "/textures/woodcrate.png";
-      break;
-    case 2:
-      image.src = "/textures/nitro.png";
-      break;
-    case 3:
-      image.src = "/textures/tnt.jpg";
-      break;
-    case 4:
-      image.src = "/textures/life.jpeg";
-      break;
-  }
-  
-  image.addEventListener('load', function() {
-    // Now that the image has loaded make copy it to the texture.
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-    gl.generateMipmap(gl.TEXTURE_2D);
-    console.log(texture);
-  });
-}*/
-
-function loadTextures2(){
-  console.log('CARREGANDO VARIOS TEXTURAS');
+function loadTextures(){
+  console.log('Loading textures...')
 
   tex = twgl.createTextures(gl, {crate:{src:"/textures/woodcrate.png"},
                                 nitro:{src:"/textures/nitro.png"},
                                 tnt:{src:"/textures/tnt.jpg"},
-                                life:{src:"/textures/life.jpeg"}});
+                                life:{src:"/textures/life.jpeg"},
+                                d4:{src:"/textures/d4.jpg"},
+                                tri:{src:"/textures/tri.jpg"}});
 
   myTexturesArray =[
     tex.crate,
     tex.nitro,
     tex.tnt,
-    tex.life
+    tex.life,
+    tex.d4,
+    tex.tri
   ]
-  console.log("printa carai!")
-  console.log(tex.crate.src);
-  console.log(tex.tnt.src);
-  console.log(myTexturesArray);
+}
+
+function loadObjBufferInfoAndVao(){
+  console.log('Loading Obj Infos')
+
+  let objectData;
+
+  let urls =["./objects/cube.json",
+            "./objects/triPyramid.json",
+            "./objects/triangule.json"
+          ]
+
+  let request = new XMLHttpRequest();
+
+  urls.forEach(function(url){
+    //realiza o GET do arquivo (false = força que seja sincrono - estava tendo problemas com leitura assincrona)
+    request.open("GET",url,false);
+    request.send(null);
+    //se encontrou o arquivo, copia os dados que estao em formato texto e realiza o parse para JSON Object
+    if (request.status === 200) {
+      //copia dos dados em formato texto
+      let data=request.response;
+      //realiza o PARSE para formato JSON
+      //objectData cointem os dados (buffers e ID) do objeto a ser carregado
+      objectData = JSON.parse(data);
+      //console.log(objectData);
+  }
+  else
+  {
+    console.log("ERRO NA LEITURA DE ARQUIVO");
+    return;
+  }
+
+  //console.log(objectData);
+
+  objectData.arrays.normals = calculateNormal(objectData.arrays.position,objectData.arrays.indices);
+  objectData.arrays.barycentric = calculateBarycentric(objectData.arrays.position.length);
+
+  //cria os buffers através do array no objeto recebido
+  newObjectBufferInfo = twgl.createBufferInfoFromArrays(gl,objectData.arrays)
+  //cria o VAO baseado nos buffers
+  newObjectVAO = twgl.createVAOFromBufferInfo(gl, programInfo, newObjectBufferInfo);
+  
+  bufferInfoArray.push(newObjectBufferInfo);
+  vaoArray.push(newObjectVAO);
+})
+  
 
 }
 
 function main() {
 
-"use strict";
+//"use strict";
 
-var x = 0;
   //1º passo:
   //Cria contexto WEBGL e Programa (Vertex Shader + Fragment Shadder)
   gl = makeGlContext();
@@ -249,6 +199,8 @@ var x = 0;
   listOfObjId=[];
   nodeInfosByName = {};
   myTexturesArray = [];
+  bufferInfoArray = [];
+  vaoArray = [];
   
 
 
@@ -262,26 +214,32 @@ var x = 0;
       children: [],
     };
 
-
+  //Cria cena inicial apenas com a origem nela
   scene = makeNode(sceneDescription);
-  //console.log("tipo: "+typeof(nodeInfosByName));
 
-  //loadNewObject(1);
-  
-
-  //addObjectToScene();
-  
-  //criar lista de objetos e lista de objetos para desenhar (alguns podem não ser desenhados)
-  //cada objeto será um nodo da scena, a origem será um nodo também
-
-
-   //Configura FOV
+  //Configura FOV
   var fieldOfViewRadians = degToRad(60);
- 
+  //Carrega interface
   interfaceGUI();
+ 
+  //Carrega as meshs dos objetos
+  loadObjBufferInfoAndVao();
+  console.log('objBufferInfo´s');
+  console.log(bufferInfoArray);
+  console.log('objVAO´s');
+  console.log(vaoArray);
+  
+  //Carrega todas as texturas
+  loadTextures();
+  console.log('All Textures');
+  console.log(myTexturesArray);
+
+
+
   console.log(sceneDescription);
-  //loadTextures(1);
-  loadTextures2();
+
+
+
   requestAnimationFrame(drawScene);
 
   // Draw the scene.
@@ -351,11 +309,6 @@ var x = 0;
      
   
       
-
-      if(x==0){
-        console.log(objectsToDraw);
-        x=1;
-      }
       // ------ Draw the objects --------
       twgl.drawObjectList(gl, objectsToDraw);
     }

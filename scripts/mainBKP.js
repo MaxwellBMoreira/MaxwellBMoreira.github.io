@@ -8,6 +8,9 @@ var nodeInfosByName;
 var gl,programInfo;
 var sceneDescription;
 var scene;
+var ii;
+var tex;
+var myTexturesArray;
 
 function makeNode(nodeDescription) {
   var trs  = new TRS();
@@ -22,7 +25,8 @@ function makeNode(nodeDescription) {
         node.drawInfo = {
         uniforms: {
           u_colorMult: [1, 1, 1, 1],
-          //u_matrix: m4.identity(),
+          u_texture: nodeDescription.texture,
+          u_matrix: m4.identity(),
         },
         programInfo: programInfo,
         bufferInfo: nodeDescription.bufferInfo,
@@ -38,6 +42,8 @@ function makeNode(nodeDescription) {
 }
 
 function makeNodes(nodeDescriptions) {
+  console.log("!!!!!!!!!!!!!!!");
+  console.log(nodeDescriptions);
   return nodeDescriptions ? nodeDescriptions.map(makeNode) : [];
 }
 
@@ -108,6 +114,8 @@ function loadNewObject(value){
   newObjectBufferInfo = twgl.createBufferInfoFromArrays(gl,objectData.arrays)
   //cria o VAO baseado nos buffers
   newObjectVAO = twgl.createVAOFromBufferInfo(gl, programInfo, newObjectBufferInfo);
+  newObjTexture = myTexturesArray[value];
+
 
   var newObj = {
     name: `${numberOfObjects}`,
@@ -116,11 +124,12 @@ function loadNewObject(value){
     rotation: [0, 0, 0],
     scale: [1, 1, 1],
     children: [],
+    texture: myTexturesArray[value-1],
     bufferInfo: newObjectBufferInfo,
     vao: newObjectVAO,
   }
  
-  loadTexture(value);
+  //loadTextures(value);
 
     //Printa o conteudo do objeto
     console.log('=====New OBJ data:========');
@@ -131,7 +140,7 @@ function loadNewObject(value){
 }
 
 //insere o objeto na cena e recria a cena
-function addObjectToScene(obj){
+function addObjectToScene(obj,value){
 
   sceneDescription.children.push(obj);
 
@@ -139,7 +148,7 @@ function addObjectToScene(obj){
   objects = [];
   nodeInfosByName = {};
 
-  scene = makeNode(sceneDescription);
+  scene = makeNode(sceneDescription,value);
 
   console.log('====OBJETO INSERIDO NA CENA - CENA ATUAL');
   console.log('nodeInfosByName');
@@ -155,53 +164,28 @@ function addObjectToScene(obj){
   console.log(sceneDescription);
 }
 
-function loadTexture(value){
+function loadTextures2(){
+  console.log('Loading textures...')
+  tex = twgl.createTextures(gl, {crate:{src:"/textures/woodcrate.png"},
+                                nitro:{src:"/textures/nitro.png"},
+                                tnt:{src:"/textures/tnt.jpg"},
+                                life:{src:"/textures/life.jpeg"},
+                                d4:{src:"/textures/d4.jpg"}});
 
-  console.log('=====CARREGANDO TEXTURAS====');
-  var texture = gl.createTexture();
-
-  // use texture unit 0
-  gl.activeTexture(gl.TEXTURE0 + 0);
-
-  // bind to the TEXTURE_2D bind point of texture unit 0
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-
-  // Fill the texture with a 1x1 blue pixel.
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
-                new Uint8Array([0, 0, 255, 255]));
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-
-  // Asynchronously load an image
-  var image = new Image();
-  switch(value){
-    case 1:
-      image.src = "/textures/woodenCrate.png";
-      break;
-    case 2:
-      image.src = "/textures/Nitro.png";
-      break;
-    case 3:
-      image.src = "/textures/TNT.jpg";
-      break;
-    case 4:
-      image.src = "/textures/Life.jpeg";
-      break;
-  }
-  
-  image.addEventListener('load', function() {
-    // Now that the image has loaded make copy it to the texture.
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-    gl.generateMipmap(gl.TEXTURE_2D);
-    //console.log(image);
-  });
+  myTexturesArray =[
+    tex.crate,
+    tex.nitro,
+    tex.tnt,
+    tex.life,
+    tex.d4
+  ]
 }
-
 
 function main() {
 
 "use strict";
 
+var x = 0;
   //1º passo:
   //Cria contexto WEBGL e Programa (Vertex Shader + Fragment Shadder)
   gl = makeGlContext();
@@ -217,6 +201,7 @@ function main() {
   objects = [];
   listOfObjId=[];
   nodeInfosByName = {};
+  myTexturesArray = [];
   
 
 
@@ -248,6 +233,8 @@ function main() {
  
   interfaceGUI();
   console.log(sceneDescription);
+  //loadTextures(1);
+  loadTextures2();
   requestAnimationFrame(drawScene);
 
   // Draw the scene.
@@ -280,13 +267,22 @@ function main() {
   
 
     if(sceneDescription.children.length!=0){//Verifica se a cena não esta vazia
-      if(objectControl.spin){
-        nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= (time*objectControl.speed)*objectControl.spin;
+      if(objectControl.tudogira){
+        for(ii=1;ii<=numberOfObjects;ii++){
+          nodeInfosByName[ii].trs.rotation[1]= (time*objectControl.speed)*objectControl.tudogira;
+        }
+
+      }else{
+        if(objectControl.spin){
+          nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= (time*objectControl.speed)*objectControl.spin;
+        }
+        else
+        {
+          nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= objectControl.rotateY;
+        }
       }
-      else
-      {
-        nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= objectControl.rotateY;
-      }
+      
+     
   
   
       //controla a animação e velocidade de rotação dos objetos
@@ -302,9 +298,17 @@ function main() {
       // Compute all the matrices for rendering
       objects.forEach(function(object) {
           object.drawInfo.uniforms.u_matrix = m4.multiply(viewProjectionMatrix, object.worldMatrix);
+          //twgl.setTextureFromElement(gl, tex.crate, canvas);
       });
+
+     
   
       
+
+      if(x==0){
+        console.log(objectsToDraw);
+        x=1;
+      }
       // ------ Draw the objects --------
       twgl.drawObjectList(gl, objectsToDraw);
     }
