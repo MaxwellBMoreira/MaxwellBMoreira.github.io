@@ -15,13 +15,19 @@ var bufferInfoArray;
 var vaoArray;
 
 function makeNode(nodeDescription) {
+  //console.log('A');
+
+  console.log(nodeDescription.name);
+
   var trs  = new TRS();
   var node = new Node(trs);
 
   nodeInfosByName[nodeDescription.name] = {
     trs: trs,
     node: node,
+    isSpining: false,
   };
+
   trs.translation = nodeDescription.translation || trs.translation;
   if (nodeDescription.draw !== false) {
         node.drawInfo = {
@@ -56,7 +62,7 @@ const calculateBarycentric = (length) => {
   return barycentric;
 };
 
-//funcao que carrega um novo objeto atraves do arquivo
+//funcao que carrega um novo objeto atraves do arquivo ===============================
 function loadNewObject(objShape,objTexture){
   
   //limpa o console para ver os dados
@@ -64,19 +70,22 @@ function loadNewObject(objShape,objTexture){
 
   numberOfObjects++;
 
+  //monta um objeto novo para ser inserido na cena
   var newObj = {
     name: `${numberOfObjects}`,
     objID: numberOfObjects,
     translation: [0, 0, 0],
-    rotation: [0, 0, 0],
-    scale: [1, 1, 1],
+    //rotation: [0, 0, 0],
+    //scale: [1, 1, 1],
     children: [],
+    //carrega a textura do array de texturas
     texture: myTexturesArray[objTexture],
+    //carega bufferInfo e Vao dos respectivos arrays
     bufferInfo: bufferInfoArray[objShape],
     vao: vaoArray[objShape],
   }
- 
 
+  objectControl.arrayOfObjects.push(newObj.name);
 
   //Printa o conteudo do objeto
   console.log('Inserindo novo objeto na cena! Dados do objeto:');
@@ -86,16 +95,58 @@ function loadNewObject(objShape,objTexture){
   addObjectToScene(newObj);
 }
 
-//insere o objeto na cena e recria a cena
+function loadNewObject2(objShape,objTexture){
+  
+  //limpa o console para ver os dados
+  console.clear()
+
+  numberOfObjects++;
+
+  //monta um objeto novo para ser inserido na cena
+  var newObj = {
+    name: `${numberOfObjects}`,
+    objID: numberOfObjects,
+    translation: [0, 0, 0],
+    rotation: [0, 0, 0],
+    scale: [1, 1, 1],
+    children: [],
+    //carrega a textura do array de texturas
+    texture: myTexturesArray[objTexture],
+    //carega bufferInfo e Vao dos respectivos arrays
+    bufferInfo: bufferInfoArray[objShape],
+    vao: vaoArray[objShape],
+  }
+
+  objectControl.arrayOfObjects.push(newObj.name);
+  gui.destroy();
+  interfaceGUI();
+ 
+  //Printa o conteudo do objeto
+  console.log('Inserindo novo objeto na cena! Dados do objeto:');
+  console.log(newObj);
+
+  //insere o objeto na cena
+  //addObjectToScene(newObj);
+  sceneDescription.children.push(obj);
+  scene = makeNode(sceneDescription);
+}
+
+//insere o objeto na cena e recria a cena ==================================
 function addObjectToScene(obj){
 
+  //Coloca o objeto como "filho da origem"
   sceneDescription.children.push(obj);
 
   objectsToDraw = [];
   objects = [];
   nodeInfosByName = {};
 
+  //recria a cena com o novo objeto
+  //console.log('antes:'+scene);
   scene = makeNode(sceneDescription);
+  gui.destroy();
+  gui=null;
+  //console.log('depois:'+scene);
 
   console.log('_______Situação atual dos arrays_______');
   console.log('nodeInfosByName');
@@ -111,9 +162,12 @@ function addObjectToScene(obj){
   console.log(sceneDescription);
 }
 
+
+//==================================================================================
 function loadTextures(){
   console.log('Loading textures...')
 
+  //Carrega todas as texturas das URLS para dentro da variavel tex
   tex = twgl.createTextures(gl, {crate:{src:"/textures/woodcrate.png"},
                                 nitro:{src:"/textures/nitro.png"},
                                 tnt:{src:"/textures/tnt.jpg"},
@@ -121,6 +175,7 @@ function loadTextures(){
                                 d4:{src:"/textures/d4.jpg"},
                                 tri:{src:"/textures/tri.jpg"}});
 
+  //seta um array de texturas para serem acessadas pelo seus indices
   myTexturesArray =[
     tex.crate,
     tex.nitro,
@@ -130,12 +185,13 @@ function loadTextures(){
     tex.tri
   ]
 }
-
+//========================================================================
 function loadObjBufferInfoAndVao(){
   console.log('Loading Obj Infos')
 
   let objectData;
 
+  //armazena todas as URLS das descrições dos objetos
   let urls =["./objects/cube.json",
             "./objects/triPyramid.json",
             "./objects/triangule.json"
@@ -143,6 +199,7 @@ function loadObjBufferInfoAndVao(){
 
   let request = new XMLHttpRequest();
 
+  //realiza o request SINCRONO para todas as urls (PS: Pode demorar se tiver muitos itens)
   urls.forEach(function(url){
     //realiza o GET do arquivo (false = força que seja sincrono - estava tendo problemas com leitura assincrona)
     request.open("GET",url,false);
@@ -164,6 +221,7 @@ function loadObjBufferInfoAndVao(){
 
   //console.log(objectData);
 
+  //calcula as normais e baricentricas de cada objeto adicionado
   objectData.arrays.normals = calculateNormal(objectData.arrays.position,objectData.arrays.indices);
   objectData.arrays.barycentric = calculateBarycentric(objectData.arrays.position.length);
 
@@ -172,13 +230,12 @@ function loadObjBufferInfoAndVao(){
   //cria o VAO baseado nos buffers
   newObjectVAO = twgl.createVAOFromBufferInfo(gl, programInfo, newObjectBufferInfo);
   
+  //Insere bufferInfos e VAOS nos respectivos arrays 
   bufferInfoArray.push(newObjectBufferInfo);
   vaoArray.push(newObjectVAO);
 })
-  
-
 }
-
+//==========================================================================
 function main() {
 
 //"use strict";
@@ -210,6 +267,9 @@ function main() {
   sceneDescription =
     {
       name: "origin",
+      translation: [0,0,0],
+      rotation: [0,0,0],
+      scale: [0,0,0],
       draw: false,
       children: [],
     };
@@ -220,7 +280,10 @@ function main() {
   //Configura FOV
   var fieldOfViewRadians = degToRad(60);
   //Carrega interface
-  interfaceGUI();
+  if(gui == null){
+    interfaceGUI();
+  }
+
  
   //Carrega as meshs dos objetos
   loadObjBufferInfoAndVao();
@@ -245,6 +308,9 @@ function main() {
   // Draw the scene.
   function drawScene(time) {
     time *= 0.001;
+    if(gui == null){
+      interfaceGUI();
+    }
     
 
     twgl.resizeCanvasToDisplaySize(gl.canvas);
@@ -270,32 +336,32 @@ function main() {
 
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
   
+    var fRotationRadians = degToRad(uiObj.rotation.y);
 
-    if(sceneDescription.children.length!=0){//Verifica se a cena não esta vazia
-      if(objectControl.tudogira){
+    if(sceneDescription.children.length!=0){//verifica se a cena não esta vazia
+
+
+      /*if(objectControl.tudogira){
         for(ii=1;ii<=numberOfObjects;ii++){
           nodeInfosByName[ii].trs.rotation[1]= (time*objectControl.speed)*objectControl.tudogira;
         }
+      }*/
 
-      }else{
-        if(objectControl.spin){
-          nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= (time*objectControl.speed)*objectControl.spin;
-        }
-        else
-        {
-          nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= objectControl.rotateY;
-        }
+
+      if(objectControl.isObjectSelected){//meu objeto esta selecionado?  
+            if(objectControl.spin){//meu objeto esta marcado para girar sozinho?
+              nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= (time*objectControl.speed)*objectControl.spin;
+            }
+            else//se nao esta eu giro ele na mao
+            {
+              nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= objectControl.rotateY;
+            }
+
+            nodeInfosByName[objectControl.selectedObj].trs.translation= [objectControl.positionX,objectControl.positionY,objectControl.positionZ];
+            nodeInfosByName[objectControl.selectedObj].trs.rotation[0]= objectControl.rotateX;
+            nodeInfosByName[objectControl.selectedObj].trs.rotation[2]= objectControl.rotateZ;
+            nodeInfosByName[objectControl.selectedObj].trs.scale= [objectControl.scaleX,objectControl.scaleY,objectControl.scaleZ];      
       }
-      
-     
-  
-  
-      //controla a animação e velocidade de rotação dos objetos
-      nodeInfosByName[objectControl.selectedObj].trs.translation= [objectControl.positionX,objectControl.positionY,objectControl.positionZ];
-      nodeInfosByName[objectControl.selectedObj].trs.rotation[0]= objectControl.rotateX;
-      nodeInfosByName[objectControl.selectedObj].trs.rotation[2]= objectControl.rotateZ;
-      nodeInfosByName[objectControl.selectedObj].trs.scale= [objectControl.scale,objectControl.scale,objectControl.scale];
-  
   
       // Update all world matrices in the scene graph
       scene.updateWorldMatrix();
@@ -303,6 +369,12 @@ function main() {
       // Compute all the matrices for rendering
       objects.forEach(function(object) {
           object.drawInfo.uniforms.u_matrix = m4.multiply(viewProjectionMatrix, object.worldMatrix);
+
+          //object.drawInfo.uniforms.u_world = m4.multiply(object.worldMatrix, m4.yRotation(fRotationRadians));
+
+          //object.drawInfo.uniforms.u_worldInverseTranspose = m4.transpose(m4.inverse(object.worldMatrix));
+          
+          //object.drawInfo.uniforms.u_viewWorldPosition = cameraPosition;
           //twgl.setTextureFromElement(gl, tex.crate, canvas);
       });
 
