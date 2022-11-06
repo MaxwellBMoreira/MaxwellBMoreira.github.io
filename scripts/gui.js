@@ -7,6 +7,7 @@ var myCameras = [];
 
 function flipIn(){
   if(numberOfObjects>0){
+    //console.log("FLIP IN");
     for(ii=1;ii<=numberOfObjects;ii++){
       inMemoryObjects[ii-1].positionX=nodeInfosByName[ii].trs.translation[0];
       inMemoryObjects[ii-1].positionY=nodeInfosByName[ii].trs.translation[1];
@@ -19,28 +20,33 @@ function flipIn(){
       inMemoryObjects[ii-1].scaleZ=nodeInfosByName[ii].trs.scale[2];
       inMemoryObjects[ii-1].spin=nodeInfosByName[ii].isSpining;
       inMemoryObjects[ii-1].speed=nodeInfosByName[ii].speed;
+      inMemoryObjects[ii-1].texture=nodeInfosByName[ii].node.drawInfo.uniforms.u_texture;
     }
   }
 }
 
 function flipOut(){
 
-  for(ii=1;ii<=numberOfObjects;ii++){
-    nodeInfosByName[ii].trs.translation[0]=inMemoryObjects[ii-1].positionX;
-    nodeInfosByName[ii].trs.translation[1]=inMemoryObjects[ii-1].positionY;
-    nodeInfosByName[ii].trs.translation[2]=inMemoryObjects[ii-1].positionZ;
-    nodeInfosByName[ii].trs.rotation[0]=inMemoryObjects[ii-1].rotateX;
-    nodeInfosByName[ii].trs.rotation[1]=inMemoryObjects[ii-1].rotateY;
-    nodeInfosByName[ii].trs.rotation[2]=inMemoryObjects[ii-1].rotateZ;
-    nodeInfosByName[ii].trs.scale[0]=inMemoryObjects[ii-1].scaleX;
-    nodeInfosByName[ii].trs.scale[1]=inMemoryObjects[ii-1].scaleY;
-    nodeInfosByName[ii].trs.scale[2]=inMemoryObjects[ii-1].scaleZ;
-    nodeInfosByName[ii].isSpining=inMemoryObjects[ii-1].spin;
-   nodeInfosByName[ii].speed=inMemoryObjects[ii-1].speed;
+  if(numberOfObjects>1){
+    for(ii=1;ii<=numberOfObjects;ii++){
+      //console.log("FLIP OUT"+ii);
+      nodeInfosByName[ii].trs.translation[0]=inMemoryObjects[ii-1].positionX;
+      nodeInfosByName[ii].trs.translation[1]=inMemoryObjects[ii-1].positionY;
+      nodeInfosByName[ii].trs.translation[2]=inMemoryObjects[ii-1].positionZ;
+      nodeInfosByName[ii].trs.rotation[0]=inMemoryObjects[ii-1].rotateX;
+      nodeInfosByName[ii].trs.rotation[1]=inMemoryObjects[ii-1].rotateY;
+      nodeInfosByName[ii].trs.rotation[2]=inMemoryObjects[ii-1].rotateZ;
+      nodeInfosByName[ii].trs.scale[0]=inMemoryObjects[ii-1].scaleX;
+      nodeInfosByName[ii].trs.scale[1]=inMemoryObjects[ii-1].scaleY;
+      nodeInfosByName[ii].trs.scale[2]=inMemoryObjects[ii-1].scaleZ;
+      nodeInfosByName[ii].isSpining=inMemoryObjects[ii-1].spin;
+      nodeInfosByName[ii].speed=inMemoryObjects[ii-1].speed;
+      nodeInfosByName[ii].node.drawInfo.uniforms.u_texture=inMemoryObjects[ii-1].texture;
+    }
   }
 }
 
-function addInMemoryObject(){
+function addInMemoryObject(value){
 
   let anotherNewObj = {
     //arrayOfObjects: [],
@@ -60,7 +66,8 @@ function addInMemoryObject(){
     scaleX: 1,
     scaleY: 1,
     scaleZ: 1,
-    scale: 1
+    scale: 1,
+    texture: tex[value]
   }
   inMemoryObjects.push(anotherNewObj);
 }
@@ -131,9 +138,9 @@ var objectControl ={
     
     flipIn();
 
-    loadNewObject(0,0);
+    loadNewObject(0,"crate");
 
-    addInMemoryObject();
+    addInMemoryObject("crate");
 
     flipOut();
 
@@ -142,9 +149,9 @@ var objectControl ={
 
    flipIn();
 
-    loadNewObject(0,1);
+    loadNewObject(0,"nitro");
 
-    addInMemoryObject();
+    addInMemoryObject("nitro");
 
     flipOut();
   },
@@ -153,9 +160,9 @@ var objectControl ={
 
     flipIn();
 
-    loadNewObject(0,2);
+    loadNewObject(0,"tnt");
 
-    addInMemoryObject();
+    addInMemoryObject("tnt");
 
     flipOut();
 
@@ -165,9 +172,9 @@ var objectControl ={
 
     flipIn();
 
-    loadNewObject(0,3);
+    loadNewObject(0,"life");
 
-    addInMemoryObject();
+    addInMemoryObject("life");
 
     flipOut();
   },
@@ -176,9 +183,9 @@ var objectControl ={
 
     flipIn();
 
-    loadNewObject(0,6);
+    loadNewObject(0,"rock");
 
-    addInMemoryObject();
+    addInMemoryObject("rock");
 
     flipOut();
   },
@@ -186,9 +193,9 @@ var objectControl ={
     
     flipIn();
 
-    loadNewObject(1,4);
+    loadNewObject(1,"d4dice");
 
-    addInMemoryObject();
+    addInMemoryObject("d4dice");
 
     flipOut();
   },
@@ -200,9 +207,9 @@ var objectControl ={
 
     flipIn();
 
-    loadNewObject(2,5);
+    loadNewObject(2,"triangule");
 
-    addInMemoryObject();
+    addInMemoryObject("triangule");
 
     flipOut();
 
@@ -210,6 +217,7 @@ var objectControl ={
   ["Random Texture"]:function(){
     x=randInt(0,7);
     nodeInfosByName[objectControl.selectedObj].node.drawInfo.uniforms.u_texture=myTexturesArray[x];
+    nodeInfosByName[objectControl.selectedObj].texture=myTexturesArray[x];
   }
 }
 
@@ -238,7 +246,10 @@ const interfaceGUI = () => {
     //manipObjFolder.add(objectControl,"tudogira");
   objIsSpining = manipObjFolder.add(objectControl,"spin");
   objSpinSpeed = manipObjFolder.add(objectControl,"speed", 0, 6, 0.1);
-  lookTexture = manipObjFolder.add(objectControl,"texture",tex);
+  lookTexture = manipObjFolder.add(objectControl,"texture",textureNames).onChange(function(){
+    nodeInfosByName[objectControl.selectedObj].node.drawInfo.uniforms.u_texture=tex[objectControl.texture];
+    //nodeInfosByName[objectControl.selectedObj].texture=objectControl.texture;
+  })
   manipObjFolder.add(objectControl,"Random Texture")
   objTx = manipObjFolder.add(objectControl,"positionX",-10,10,0.1);
   objTy = manipObjFolder.add(objectControl,"positionY",-10,10,0.1);
@@ -268,7 +279,7 @@ const interfaceGUI = () => {
     objectControl.scaleZ = nodeInfosByName[x].trs.scale[2];
     objectControl.speed = nodeInfosByName[x].speed;
     objectControl.spin = nodeInfosByName[x].isSpining;
-    objectControl.texture = nodeInfosByName[x].node.drawInfo.uniforms.u_texture;
+    //objectControl.texture = nodeInfosByName[x].node.uniforms.u_texture;
 
     gui.destroy();
     interfaceGUI();

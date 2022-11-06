@@ -35,8 +35,8 @@ function makeNode(nodeDescription) {
   if (nodeDescription.draw !== false) {
         node.drawInfo = {
         uniforms: {
-          u_colorMult: [1, 1, 1, 1],
-          u_texture: nodeDescription.texture,
+          //u_colorMult: [1, 1, 1, 1],
+          u_texture: tex[nodeDescription.texture],
           u_matrix: m4.identity(),
         },
         programInfo: programInfo,
@@ -70,6 +70,7 @@ function loadNewObject(objShape,objTexture){
   
   //limpa o console para ver os dados
   console.clear()
+  
 
   numberOfObjects++;
 
@@ -82,7 +83,7 @@ function loadNewObject(objShape,objTexture){
     //scale: [1, 1, 1],
     children: [],
     //carrega a textura do array de texturas
-    texture: myTexturesArray[objTexture],
+    texture: objTexture,
     //carega bufferInfo e Vao dos respectivos arrays
     bufferInfo: bufferInfoArray[objShape],
     vao: vaoArray[objShape],
@@ -96,42 +97,6 @@ function loadNewObject(objShape,objTexture){
 
   //insere o objeto na cena
   addObjectToScene(newObj);
-}
-
-function loadNewObject2(objShape,objTexture){
-  
-  //limpa o console para ver os dados
-  console.clear()
-
-  numberOfObjects++;
-
-  //monta um objeto novo para ser inserido na cena
-  var newObj = {
-    name: `${numberOfObjects}`,
-    //objID: numberOfObjects,
-    translation: [0, 0, 0],
-    rotation: [0, 0, 0],
-    scale: [1, 1, 1],
-    children: [],
-    //carrega a textura do array de texturas
-    texture: myTexturesArray[objTexture],
-    //carega bufferInfo e Vao dos respectivos arrays
-    bufferInfo: bufferInfoArray[objShape],
-    vao: vaoArray[objShape],
-  }
-
-  objectControl.arrayOfObjects.push(newObj.name);
-  gui.destroy();
-  interfaceGUI();
- 
-  //Printa o conteudo do objeto
-  console.log('Inserindo novo objeto na cena! Dados do objeto:');
-  console.log(newObj);
-
-  //insere o objeto na cena
-  //addObjectToScene(newObj);
-  sceneDescription.children.push(obj);
-  scene = makeNode(sceneDescription);
 }
 
 //insere o objeto na cena e recria a cena ==================================
@@ -175,18 +140,21 @@ function loadTextures(){
                                 nitro:{src:"/textures/nitro.png"},
                                 tnt:{src:"/textures/tnt.jpg"},
                                 life:{src:"/textures/life.jpeg"},
-                                d4:{src:"/textures/d4.jpg"},
-                                tri:{src:"/textures/tri.jpg"},
+                                d4dice:{src:"/textures/d4.jpg"},
+                                triangule:{src:"/textures/tri.jpg"},
                                 rock:{src:"/textures/rocks.jpg"}});
 
   //seta um array de texturas para serem acessadas pelo seus indices
+  
+  textureNames = ['crate','nitro','tnt','life','d4dice','triangule','rock'];
+
   myTexturesArray =[
     tex.crate,
     tex.nitro,
     tex.tnt,
     tex.life,
-    tex.d4,
-    tex.tri,
+    tex.d4dice,
+    tex.triangule,
     tex.rock
   ]
 }
