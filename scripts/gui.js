@@ -5,6 +5,66 @@ var lookTexture;
 var inMemoryObjects =[];
 var myCameras = [];
 
+function flipIn(){
+  if(numberOfObjects>0){
+    for(ii=1;ii<=numberOfObjects;ii++){
+      inMemoryObjects[ii-1].positionX=nodeInfosByName[ii].trs.translation[0];
+      inMemoryObjects[ii-1].positionY=nodeInfosByName[ii].trs.translation[1];
+      inMemoryObjects[ii-1].positionZ=nodeInfosByName[ii].trs.translation[2];
+      inMemoryObjects[ii-1].rotateX=nodeInfosByName[ii].trs.rotation[0];
+      inMemoryObjects[ii-1].rotateY=nodeInfosByName[ii].trs.rotation[1]
+      inMemoryObjects[ii-1].rotateZ=nodeInfosByName[ii].trs.rotation[2]
+      inMemoryObjects[ii-1].scaleX=nodeInfosByName[ii].trs.scale[0];
+      inMemoryObjects[ii-1].scaleY=nodeInfosByName[ii].trs.scale[1];
+      inMemoryObjects[ii-1].scaleZ=nodeInfosByName[ii].trs.scale[2];
+      inMemoryObjects[ii-1].spin=nodeInfosByName[ii].isSpining;
+      inMemoryObjects[ii-1].speed=nodeInfosByName[ii].speed;
+    }
+  }
+}
+
+function flipOut(){
+
+  for(ii=1;ii<=numberOfObjects;ii++){
+    nodeInfosByName[ii].trs.translation[0]=inMemoryObjects[ii-1].positionX;
+    nodeInfosByName[ii].trs.translation[1]=inMemoryObjects[ii-1].positionY;
+    nodeInfosByName[ii].trs.translation[2]=inMemoryObjects[ii-1].positionZ;
+    nodeInfosByName[ii].trs.rotation[0]=inMemoryObjects[ii-1].rotateX;
+    nodeInfosByName[ii].trs.rotation[1]=inMemoryObjects[ii-1].rotateY;
+    nodeInfosByName[ii].trs.rotation[2]=inMemoryObjects[ii-1].rotateZ;
+    nodeInfosByName[ii].trs.scale[0]=inMemoryObjects[ii-1].scaleX;
+    nodeInfosByName[ii].trs.scale[1]=inMemoryObjects[ii-1].scaleY;
+    nodeInfosByName[ii].trs.scale[2]=inMemoryObjects[ii-1].scaleZ;
+    nodeInfosByName[ii].isSpining=inMemoryObjects[ii-1].spin;
+   nodeInfosByName[ii].speed=inMemoryObjects[ii-1].speed;
+  }
+}
+
+function addInMemoryObject(){
+
+  let anotherNewObj = {
+    //arrayOfObjects: [],
+    //selectedObj: null,
+    selectedName: numberOfObjects,
+    isObjectSelected: false,
+    //tudogira: false,
+    //interfaceObj[]
+    spin: false,
+    speed : 3,
+    positionX: 0,
+    positionY: 0,
+    positionZ: 0,
+    rotateX: 0,
+    rotateY: 0,
+    rotateZ: 0,
+    scaleX: 1,
+    scaleY: 1,
+    scaleZ: 1,
+    scale: 1
+  }
+  inMemoryObjects.push(anotherNewObj);
+}
+
 const cameraControl = {
 
   arrayOfCameras:[],
@@ -12,17 +72,26 @@ const cameraControl = {
   cameraPosX: 0,
   cameraPosY: 4,
   cameraPosZ: 20,
-  lookX: 0,
-  lookY: 0,
-  lookZ: 0,
+  lookAtX: 0,
+  lookAtY: 0,
+  lookAtZ: 0,
+  upX:0,
+  upY:1,
+  upZ:0,
 
   ['Adicionar Camera']: function(){
     cameraCounter++;
     let newCamera = {
       index:cameraCounter,
       posX:0,
-      posY:5,
-      posZ:30
+      posY:4,
+      posZ:20,
+      lookAtX: 0,
+      lookAtY: 0,
+      lookAtZ: 0,
+      upX:0,
+      upY:1,
+      upZ:0,
     }
   
     myCameras.push(newCamera);
@@ -60,343 +129,68 @@ var objectControl ={
 
   ['Add Wood Crate']:function(){
     
-    if(numberOfObjects>0){
-      for(ii=1;ii<=numberOfObjects;ii++){
-        inMemoryObjects[ii-1].positionX=nodeInfosByName[ii].trs.translation[0];
-        inMemoryObjects[ii-1].positionY=nodeInfosByName[ii].trs.translation[1];
-        inMemoryObjects[ii-1].positionZ=nodeInfosByName[ii].trs.translation[2];
-        inMemoryObjects[ii-1].rotateX=nodeInfosByName[ii].trs.rotation[0];
-        inMemoryObjects[ii-1].rotateY=nodeInfosByName[ii].trs.rotation[1]
-        inMemoryObjects[ii-1].rotateZ=nodeInfosByName[ii].trs.rotation[2]
-        inMemoryObjects[ii-1].scaleX=nodeInfosByName[ii].trs.scale[0];
-        inMemoryObjects[ii-1].scaleY=nodeInfosByName[ii].trs.scale[1];
-        inMemoryObjects[ii-1].scaleZ=nodeInfosByName[ii].trs.scale[2];
-        inMemoryObjects[ii-1].spin=nodeInfosByName[ii].isSpining;
-        inMemoryObjects[ii-1].speed=nodeInfosByName[ii].speed;
-      }
-    }
+    flipIn();
 
     loadNewObject(0,0);
 
-    let anotherNewObj = {
-      //arrayOfObjects: [],
-      //selectedObj: null,
-      selectedName: numberOfObjects,
-      isObjectSelected: false,
-      //tudogira: false,
-      //interfaceObj[]
-      spin: false,
-      speed : 3,
-      positionX: 0,
-      positionY: 0,
-      positionZ: 0,
-      rotateX: 0,
-      rotateY: 0,
-      rotateZ: 0,
-      scaleX: 1,
-      scaleY: 1,
-      scaleZ: 1,
-      scale: 1
-    }
-    inMemoryObjects.push(anotherNewObj);
+    addInMemoryObject();
 
-    for(ii=1;ii<=numberOfObjects;ii++){
-      nodeInfosByName[ii].trs.translation[0]=inMemoryObjects[ii-1].positionX;
-      nodeInfosByName[ii].trs.translation[1]=inMemoryObjects[ii-1].positionY;
-      nodeInfosByName[ii].trs.translation[2]=inMemoryObjects[ii-1].positionZ;
-      nodeInfosByName[ii].trs.rotation[0]=inMemoryObjects[ii-1].rotateX;
-      nodeInfosByName[ii].trs.rotation[1]=inMemoryObjects[ii-1].rotateY;
-      nodeInfosByName[ii].trs.rotation[2]=inMemoryObjects[ii-1].rotateZ;
-      nodeInfosByName[ii].trs.scale[0]=inMemoryObjects[ii-1].scaleX;
-      nodeInfosByName[ii].trs.scale[1]=inMemoryObjects[ii-1].scaleY;
-      nodeInfosByName[ii].trs.scale[2]=inMemoryObjects[ii-1].scaleZ;
-      nodeInfosByName[ii].isSpining=inMemoryObjects[ii-1].spin;
-     nodeInfosByName[ii].speed=inMemoryObjects[ii-1].speed;
-    }
+    flipOut();
+
   },
   ['Add Nitro Crate']:function(){
 
-    if(numberOfObjects>0){
-      for(ii=1;ii<=numberOfObjects;ii++){
-        inMemoryObjects[ii-1].positionX=nodeInfosByName[ii].trs.translation[0];
-        inMemoryObjects[ii-1].positionY=nodeInfosByName[ii].trs.translation[1];
-        inMemoryObjects[ii-1].positionZ=nodeInfosByName[ii].trs.translation[2];
-        inMemoryObjects[ii-1].rotateX=nodeInfosByName[ii].trs.rotation[0];
-        inMemoryObjects[ii-1].rotateY=nodeInfosByName[ii].trs.rotation[1]
-        inMemoryObjects[ii-1].rotateZ=nodeInfosByName[ii].trs.rotation[2]
-        inMemoryObjects[ii-1].scaleX=nodeInfosByName[ii].trs.scale[0];
-        inMemoryObjects[ii-1].scaleY=nodeInfosByName[ii].trs.scale[1];
-        inMemoryObjects[ii-1].scaleZ=nodeInfosByName[ii].trs.scale[2];
-        inMemoryObjects[ii-1].spin=nodeInfosByName[ii].isSpining;
-        inMemoryObjects[ii-1].speed=nodeInfosByName[ii].speed;
-      }
-    }
+   flipIn();
 
     loadNewObject(0,1);
 
-    let anotherNewObj = {
-      //arrayOfObjects: [],
-      //selectedObj: null,
-      selectedName: numberOfObjects,
-      isObjectSelected: false,
-      //tudogira: false,
-      //interfaceObj[]
-      spin: false,
-      speed : 3,
-      positionX: 0,
-      positionY: 0,
-      positionZ: 0,
-      rotateX: 0,
-      rotateY: 0,
-      rotateZ: 0,
-      scaleX: 1,
-      scaleY: 1,
-      scaleZ: 1,
-      scale: 1
-    }
-    inMemoryObjects.push(anotherNewObj);
+    addInMemoryObject();
 
-    for(ii=1;ii<=numberOfObjects;ii++){
-      nodeInfosByName[ii].trs.translation[0]=inMemoryObjects[ii-1].positionX;
-      nodeInfosByName[ii].trs.translation[1]=inMemoryObjects[ii-1].positionY;
-      nodeInfosByName[ii].trs.translation[2]=inMemoryObjects[ii-1].positionZ;
-      nodeInfosByName[ii].trs.rotation[0]=inMemoryObjects[ii-1].rotateX;
-      nodeInfosByName[ii].trs.rotation[1]=inMemoryObjects[ii-1].rotateY;
-      nodeInfosByName[ii].trs.rotation[2]=inMemoryObjects[ii-1].rotateZ;
-      nodeInfosByName[ii].trs.scale[0]=inMemoryObjects[ii-1].scaleX;
-      nodeInfosByName[ii].trs.scale[1]=inMemoryObjects[ii-1].scaleY;
-      nodeInfosByName[ii].trs.scale[2]=inMemoryObjects[ii-1].scaleZ;
-      nodeInfosByName[ii].isSpining=inMemoryObjects[ii-1].spin;
-     nodeInfosByName[ii].speed=inMemoryObjects[ii-1].speed;
-    }
+    flipOut();
   },
   ['Add TNT Crate']:function(){
     
 
-    if(numberOfObjects>0){
-      for(ii=1;ii<=numberOfObjects;ii++){
-        inMemoryObjects[ii-1].positionX=nodeInfosByName[ii].trs.translation[0];
-        inMemoryObjects[ii-1].positionY=nodeInfosByName[ii].trs.translation[1];
-        inMemoryObjects[ii-1].positionZ=nodeInfosByName[ii].trs.translation[2];
-        inMemoryObjects[ii-1].rotateX=nodeInfosByName[ii].trs.rotation[0];
-        inMemoryObjects[ii-1].rotateY=nodeInfosByName[ii].trs.rotation[1]
-        inMemoryObjects[ii-1].rotateZ=nodeInfosByName[ii].trs.rotation[2]
-        inMemoryObjects[ii-1].scaleX=nodeInfosByName[ii].trs.scale[0];
-        inMemoryObjects[ii-1].scaleY=nodeInfosByName[ii].trs.scale[1];
-        inMemoryObjects[ii-1].scaleZ=nodeInfosByName[ii].trs.scale[2];
-        inMemoryObjects[ii-1].spin=nodeInfosByName[ii].isSpining;
-        inMemoryObjects[ii-1].speed=nodeInfosByName[ii].speed;
-      }
-    }
+    flipIn();
 
     loadNewObject(0,2);
 
-    let anotherNewObj = {
-      //arrayOfObjects: [],
-      //selectedObj: null,
-      selectedName: numberOfObjects,
-      isObjectSelected: false,
-      //tudogira: false,
-      //interfaceObj[]
-      spin: false,
-      speed : 3,
-      positionX: 0,
-      positionY: 0,
-      positionZ: 0,
-      rotateX: 0,
-      rotateY: 0,
-      rotateZ: 0,
-      scaleX: 1,
-      scaleY: 1,
-      scaleZ: 1,
-      scale: 1
-    }
-    inMemoryObjects.push(anotherNewObj);
+    addInMemoryObject();
 
-    for(ii=1;ii<=numberOfObjects;ii++){
-      nodeInfosByName[ii].trs.translation[0]=inMemoryObjects[ii-1].positionX;
-      nodeInfosByName[ii].trs.translation[1]=inMemoryObjects[ii-1].positionY;
-      nodeInfosByName[ii].trs.translation[2]=inMemoryObjects[ii-1].positionZ;
-      nodeInfosByName[ii].trs.rotation[0]=inMemoryObjects[ii-1].rotateX;
-      nodeInfosByName[ii].trs.rotation[1]=inMemoryObjects[ii-1].rotateY;
-      nodeInfosByName[ii].trs.rotation[2]=inMemoryObjects[ii-1].rotateZ;
-      nodeInfosByName[ii].trs.scale[0]=inMemoryObjects[ii-1].scaleX;
-      nodeInfosByName[ii].trs.scale[1]=inMemoryObjects[ii-1].scaleY;
-      nodeInfosByName[ii].trs.scale[2]=inMemoryObjects[ii-1].scaleZ;
-      nodeInfosByName[ii].isSpining=inMemoryObjects[ii-1].spin;
-     nodeInfosByName[ii].speed=inMemoryObjects[ii-1].speed;
-    }
+    flipOut();
 
   },
   ['Add Life Crate']:function(){
     
 
-    if(numberOfObjects>0){
-      for(ii=1;ii<=numberOfObjects;ii++){
-        inMemoryObjects[ii-1].positionX=nodeInfosByName[ii].trs.translation[0];
-        inMemoryObjects[ii-1].positionY=nodeInfosByName[ii].trs.translation[1];
-        inMemoryObjects[ii-1].positionZ=nodeInfosByName[ii].trs.translation[2];
-        inMemoryObjects[ii-1].rotateX=nodeInfosByName[ii].trs.rotation[0];
-        inMemoryObjects[ii-1].rotateY=nodeInfosByName[ii].trs.rotation[1]
-        inMemoryObjects[ii-1].rotateZ=nodeInfosByName[ii].trs.rotation[2]
-        inMemoryObjects[ii-1].scaleX=nodeInfosByName[ii].trs.scale[0];
-        inMemoryObjects[ii-1].scaleY=nodeInfosByName[ii].trs.scale[1];
-        inMemoryObjects[ii-1].scaleZ=nodeInfosByName[ii].trs.scale[2];
-        inMemoryObjects[ii-1].spin=nodeInfosByName[ii].isSpining;
-        inMemoryObjects[ii-1].speed=nodeInfosByName[ii].speed;
-      }
-    }
+    flipIn();
 
     loadNewObject(0,3);
 
-    let anotherNewObj = {
-      //arrayOfObjects: [],
-      //selectedObj: null,
-      selectedName: numberOfObjects,
-      isObjectSelected: false,
-      //tudogira: false,
-      //interfaceObj[]
-      spin: false,
-      speed : 3,
-      positionX: 0,
-      positionY: 0,
-      positionZ: 0,
-      rotateX: 0,
-      rotateY: 0,
-      rotateZ: 0,
-      scaleX: 1,
-      scaleY: 1,
-      scaleZ: 1,
-      scale: 1
-    }
-    inMemoryObjects.push(anotherNewObj);
+    addInMemoryObject();
 
-    for(ii=1;ii<=numberOfObjects;ii++){
-      nodeInfosByName[ii].trs.translation[0]=inMemoryObjects[ii-1].positionX;
-      nodeInfosByName[ii].trs.translation[1]=inMemoryObjects[ii-1].positionY;
-      nodeInfosByName[ii].trs.translation[2]=inMemoryObjects[ii-1].positionZ;
-      nodeInfosByName[ii].trs.rotation[0]=inMemoryObjects[ii-1].rotateX;
-      nodeInfosByName[ii].trs.rotation[1]=inMemoryObjects[ii-1].rotateY;
-      nodeInfosByName[ii].trs.rotation[2]=inMemoryObjects[ii-1].rotateZ;
-      nodeInfosByName[ii].trs.scale[0]=inMemoryObjects[ii-1].scaleX;
-      nodeInfosByName[ii].trs.scale[1]=inMemoryObjects[ii-1].scaleY;
-      nodeInfosByName[ii].trs.scale[2]=inMemoryObjects[ii-1].scaleZ;
-      nodeInfosByName[ii].isSpining=inMemoryObjects[ii-1].spin;
-     nodeInfosByName[ii].speed=inMemoryObjects[ii-1].speed;
-    }
+    flipOut();
   },
   ['Add Rock Block']:function(){
     
 
-    if(numberOfObjects>0){
-      for(ii=1;ii<=numberOfObjects;ii++){
-        inMemoryObjects[ii-1].positionX=nodeInfosByName[ii].trs.translation[0];
-        inMemoryObjects[ii-1].positionY=nodeInfosByName[ii].trs.translation[1];
-        inMemoryObjects[ii-1].positionZ=nodeInfosByName[ii].trs.translation[2];
-        inMemoryObjects[ii-1].rotateX=nodeInfosByName[ii].trs.rotation[0];
-        inMemoryObjects[ii-1].rotateY=nodeInfosByName[ii].trs.rotation[1]
-        inMemoryObjects[ii-1].rotateZ=nodeInfosByName[ii].trs.rotation[2]
-        inMemoryObjects[ii-1].scaleX=nodeInfosByName[ii].trs.scale[0];
-        inMemoryObjects[ii-1].scaleY=nodeInfosByName[ii].trs.scale[1];
-        inMemoryObjects[ii-1].scaleZ=nodeInfosByName[ii].trs.scale[2];
-        inMemoryObjects[ii-1].spin=nodeInfosByName[ii].isSpining;
-        inMemoryObjects[ii-1].speed=nodeInfosByName[ii].speed;
-      }
-    }
+    flipIn();
 
     loadNewObject(0,6);
 
-    let anotherNewObj = {
-      //arrayOfObjects: [],
-      //selectedObj: null,
-      selectedName: numberOfObjects,
-      isObjectSelected: false,
-      //tudogira: false,
-      //interfaceObj[]
-      spin: false,
-      speed : 3,
-      positionX: 0,
-      positionY: 0,
-      positionZ: 0,
-      rotateX: 0,
-      rotateY: 0,
-      rotateZ: 0,
-      scaleX: 1,
-      scaleY: 1,
-      scaleZ: 1,
-      scale: 1
-    }
-    inMemoryObjects.push(anotherNewObj);
+    addInMemoryObject();
 
-    for(ii=1;ii<=numberOfObjects;ii++){
-      nodeInfosByName[ii].trs.translation[0]=inMemoryObjects[ii-1].positionX;
-      nodeInfosByName[ii].trs.translation[1]=inMemoryObjects[ii-1].positionY;
-      nodeInfosByName[ii].trs.translation[2]=inMemoryObjects[ii-1].positionZ;
-      nodeInfosByName[ii].trs.rotation[0]=inMemoryObjects[ii-1].rotateX;
-      nodeInfosByName[ii].trs.rotation[1]=inMemoryObjects[ii-1].rotateY;
-      nodeInfosByName[ii].trs.rotation[2]=inMemoryObjects[ii-1].rotateZ;
-      nodeInfosByName[ii].trs.scale[0]=inMemoryObjects[ii-1].scaleX;
-      nodeInfosByName[ii].trs.scale[1]=inMemoryObjects[ii-1].scaleY;
-      nodeInfosByName[ii].trs.scale[2]=inMemoryObjects[ii-1].scaleZ;
-      nodeInfosByName[ii].isSpining=inMemoryObjects[ii-1].spin;
-     nodeInfosByName[ii].speed=inMemoryObjects[ii-1].speed;
-    }
+    flipOut();
   },
   ['Add 4 side dice']:function(){
     
-    if(numberOfObjects>0){
-      for(ii=1;ii<=numberOfObjects;ii++){
-        inMemoryObjects[ii-1].positionX=nodeInfosByName[ii].trs.translation[0];
-        inMemoryObjects[ii-1].positionY=nodeInfosByName[ii].trs.translation[1];
-        inMemoryObjects[ii-1].positionZ=nodeInfosByName[ii].trs.translation[2];
-        inMemoryObjects[ii-1].rotateX=nodeInfosByName[ii].trs.rotation[0];
-        inMemoryObjects[ii-1].rotateY=nodeInfosByName[ii].trs.rotation[1]
-        inMemoryObjects[ii-1].rotateZ=nodeInfosByName[ii].trs.rotation[2]
-        inMemoryObjects[ii-1].scaleX=nodeInfosByName[ii].trs.scale[0];
-        inMemoryObjects[ii-1].scaleY=nodeInfosByName[ii].trs.scale[1];
-        inMemoryObjects[ii-1].scaleZ=nodeInfosByName[ii].trs.scale[2];
-        inMemoryObjects[ii-1].spin=nodeInfosByName[ii].isSpining;
-        inMemoryObjects[ii-1].speed=nodeInfosByName[ii].speed;
-      }
-    }
+    flipIn();
 
     loadNewObject(1,4);
 
-    let anotherNewObj = {
-      //arrayOfObjects: [],
-      //selectedObj: null,
-      selectedName: numberOfObjects,
-      isObjectSelected: false,
-      //tudogira: false,
-      //interfaceObj[]
-      spin: false,
-      speed : 3,
-      positionX: 0,
-      positionY: 0,
-      positionZ: 0,
-      rotateX: 0,
-      rotateY: 0,
-      rotateZ: 0,
-      scaleX: 1,
-      scaleY: 1,
-      scaleZ: 1,
-      scale: 1
-    }
-    inMemoryObjects.push(anotherNewObj);
+    addInMemoryObject();
 
-    for(ii=1;ii<=numberOfObjects;ii++){
-      nodeInfosByName[ii].trs.translation[0]=inMemoryObjects[ii-1].positionX;
-      nodeInfosByName[ii].trs.translation[1]=inMemoryObjects[ii-1].positionY;
-      nodeInfosByName[ii].trs.translation[2]=inMemoryObjects[ii-1].positionZ;
-      nodeInfosByName[ii].trs.rotation[0]=inMemoryObjects[ii-1].rotateX;
-      nodeInfosByName[ii].trs.rotation[1]=inMemoryObjects[ii-1].rotateY;
-      nodeInfosByName[ii].trs.rotation[2]=inMemoryObjects[ii-1].rotateZ;
-      nodeInfosByName[ii].trs.scale[0]=inMemoryObjects[ii-1].scaleX;
-      nodeInfosByName[ii].trs.scale[1]=inMemoryObjects[ii-1].scaleY;
-      nodeInfosByName[ii].trs.scale[2]=inMemoryObjects[ii-1].scaleZ;
-      nodeInfosByName[ii].isSpining=inMemoryObjects[ii-1].spin;
-     nodeInfosByName[ii].speed=inMemoryObjects[ii-1].speed;
-    }
+    flipOut();
   },
  /* 'Load car':function(){
     loadNewObject();
@@ -404,62 +198,17 @@ var objectControl ={
   ['Add triangule']:function(){
     
 
-    if(numberOfObjects>0){
-      for(ii=1;ii<=numberOfObjects;ii++){
-        inMemoryObjects[ii-1].positionX=nodeInfosByName[ii].trs.translation[0];
-        inMemoryObjects[ii-1].positionY=nodeInfosByName[ii].trs.translation[1];
-        inMemoryObjects[ii-1].positionZ=nodeInfosByName[ii].trs.translation[2];
-        inMemoryObjects[ii-1].rotateX=nodeInfosByName[ii].trs.rotation[0];
-        inMemoryObjects[ii-1].rotateY=nodeInfosByName[ii].trs.rotation[1]
-        inMemoryObjects[ii-1].rotateZ=nodeInfosByName[ii].trs.rotation[2]
-        inMemoryObjects[ii-1].scaleX=nodeInfosByName[ii].trs.scale[0];
-        inMemoryObjects[ii-1].scaleY=nodeInfosByName[ii].trs.scale[1];
-        inMemoryObjects[ii-1].scaleZ=nodeInfosByName[ii].trs.scale[2];
-        inMemoryObjects[ii-1].spin=nodeInfosByName[ii].isSpining;
-        inMemoryObjects[ii-1].speed=nodeInfosByName[ii].speed;
-      }
-    }
+    flipIn();
 
     loadNewObject(2,5);
 
-    let anotherNewObj = {
-      //arrayOfObjects: [],
-      //selectedObj: null,
-      selectedName: numberOfObjects,
-      isObjectSelected: false,
-      //tudogira: false,
-      //interfaceObj[]
-      spin: false,
-      speed : 3,
-      positionX: 0,
-      positionY: 0,
-      positionZ: 0,
-      rotateX: 0,
-      rotateY: 0,
-      rotateZ: 0,
-      scaleX: 1,
-      scaleY: 1,
-      scaleZ: 1,
-      scale: 1
-    }
-    inMemoryObjects.push(anotherNewObj);
+    addInMemoryObject();
 
-    for(ii=1;ii<=numberOfObjects;ii++){
-      nodeInfosByName[ii].trs.translation[0]=inMemoryObjects[ii-1].positionX;
-      nodeInfosByName[ii].trs.translation[1]=inMemoryObjects[ii-1].positionY;
-      nodeInfosByName[ii].trs.translation[2]=inMemoryObjects[ii-1].positionZ;
-      nodeInfosByName[ii].trs.rotation[0]=inMemoryObjects[ii-1].rotateX;
-      nodeInfosByName[ii].trs.rotation[1]=inMemoryObjects[ii-1].rotateY;
-      nodeInfosByName[ii].trs.rotation[2]=inMemoryObjects[ii-1].rotateZ;
-      nodeInfosByName[ii].trs.scale[0]=inMemoryObjects[ii-1].scaleX;
-      nodeInfosByName[ii].trs.scale[1]=inMemoryObjects[ii-1].scaleY;
-      nodeInfosByName[ii].trs.scale[2]=inMemoryObjects[ii-1].scaleZ;
-      nodeInfosByName[ii].isSpining=inMemoryObjects[ii-1].spin;
-     nodeInfosByName[ii].speed=inMemoryObjects[ii-1].speed;
-    }
+    flipOut();
+
   },
   ["Random Texture"]:function(){
-    x=randInt(0,6);
+    x=randInt(0,7);
     nodeInfosByName[objectControl.selectedObj].node.drawInfo.uniforms.u_texture=myTexturesArray[x];
   }
 }
@@ -550,6 +299,12 @@ const interfaceGUI = () => {
       cameraControl.cameraPosX=myCameras[value-1].posX;
       cameraControl.cameraPosY=myCameras[value-1].posY;
       cameraControl.cameraPosZ=myCameras[value-1].posZ;
+      cameraControl.lookAtX=myCameras[value-1].lookAtX;
+      cameraControl.lookAtY=myCameras[value-1].lookAtY;
+      cameraControl.lookAtZ=myCameras[value-1].lookAtZ;
+      cameraControl.upX=myCameras[value-1].upX;
+      cameraControl.upY=myCameras[value-1].upY;
+      cameraControl.upZ=myCameras[value-1].upZ;
       gui.destroy();
       interfaceGUI();
     })
@@ -563,6 +318,25 @@ const interfaceGUI = () => {
     manipCamera.add(cameraControl,"cameraPosZ",-50,50,0.1).onChange(function(value){
       myCameras[cameraControl.selectedCamera-1].posZ=value;
     })
+    manipCamera.add(cameraControl,"lookAtX",-30, 30,0.01).onChange(function(value){
+      myCameras[cameraControl.selectedCamera-1].lookAtX=value;
+    })
+    manipCamera.add(cameraControl,"lookAtY",-30, 30,0.01).onChange(function(value){
+      myCameras[cameraControl.selectedCamera-1].lookAtY=value;
+    })
+    manipCamera.add(cameraControl,"lookAtZ",-30, 30,0.01).onChange(function(value){
+      myCameras[cameraControl.selectedCamera-1].lookAtZ=value;
+    })
+    manipCamera.add(cameraControl,"upX",-2,2,0.001).onChange(function(value){
+      myCameras[cameraControl.selectedCamera-1].upX=value;
+    })
+    manipCamera.add(cameraControl,"upY",-2,2,0.001).onChange(function(value){
+      myCameras[cameraControl.selectedCamera-1].upY=value;
+    })
+    manipCamera.add(cameraControl,"upZ",-2,2,0.001).onChange(function(value){
+      myCameras[cameraControl.selectedCamera-1].upZ=value;
+    })
+
     manipCamera.add(cameraControl,"Adicionar Camera");
 
 }

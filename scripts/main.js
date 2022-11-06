@@ -288,7 +288,13 @@ function main() {
     index:cameraCounter,
     posX:0,
     posY:4,
-    posZ:20
+    posZ:20,
+    lookAtX: 0,
+    lookAtY: 0,
+    lookAtZ: 0,
+    upX:0,
+    upY:1,
+    upZ:0,
   }
 
   myCameras.push(newCamera);
@@ -345,8 +351,8 @@ function main() {
 
     // Compute the camera's matrix using look at.
     var cameraPosition = [cameraControl.cameraPosX, cameraControl.cameraPosY, cameraControl.cameraPosZ];
-    var target = [0, 0, 0];
-    var up = [0, 1, 0];
+    var target = [cameraControl.lookAtX, cameraControl.lookAtY, cameraControl.lookAtZ];
+    var up = [cameraControl.upX, cameraControl.upY, cameraControl.upZ];
     var cameraMatrix = m4.lookAt(cameraPosition, target, up);
 
     // Make a view matrix from the camera matrix.
