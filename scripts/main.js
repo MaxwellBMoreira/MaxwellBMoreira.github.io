@@ -1,4 +1,5 @@
 var numberOfObjects;
+var cameraCounter;
 var newObjectVAO;
 var newObjectBufferInfo;
 var objectsToDraw;
@@ -13,6 +14,7 @@ var tex;
 var myTexturesArray;
 var bufferInfoArray;
 var vaoArray;
+var then;
 
 function makeNode(nodeDescription) {
   //console.log('A');
@@ -26,6 +28,7 @@ function makeNode(nodeDescription) {
     trs: trs,
     node: node,
     isSpining: false,
+    speed: 3,
   };
 
   trs.translation = nodeDescription.translation || trs.translation;
@@ -105,7 +108,7 @@ function loadNewObject2(objShape,objTexture){
   //monta um objeto novo para ser inserido na cena
   var newObj = {
     name: `${numberOfObjects}`,
-    objID: numberOfObjects,
+    //objID: numberOfObjects,
     translation: [0, 0, 0],
     rotation: [0, 0, 0],
     scale: [1, 1, 1],
@@ -173,7 +176,8 @@ function loadTextures(){
                                 tnt:{src:"/textures/tnt.jpg"},
                                 life:{src:"/textures/life.jpeg"},
                                 d4:{src:"/textures/d4.jpg"},
-                                tri:{src:"/textures/tri.jpg"}});
+                                tri:{src:"/textures/tri.jpg"},
+                                rock:{src:"/textures/rocks.jpg"}});
 
   //seta um array de texturas para serem acessadas pelo seus indices
   myTexturesArray =[
@@ -182,7 +186,8 @@ function loadTextures(){
     tex.tnt,
     tex.life,
     tex.d4,
-    tex.tri
+    tex.tri,
+    tex.rock
   ]
 }
 //========================================================================
@@ -249,8 +254,9 @@ function main() {
   //blueGUI();
   //greenGUI();
   
-
+  then=0;
   numberOfObjects = 0;
+  cameraCounter = 0;
   objectsToDraw = [];
   objects = [];
   listOfObjId=[];
@@ -277,12 +283,20 @@ function main() {
   //Cria cena inicial apenas com a origem nela
   scene = makeNode(sceneDescription);
 
+  cameraCounter++;
+  let newCamera = {
+    index:cameraCounter,
+    posX:0,
+    posY:4,
+    posZ:20
+  }
+
+  myCameras.push(newCamera);
+  cameraControl.arrayOfCameras.push(newCamera.index);
+
   //Configura FOV
   var fieldOfViewRadians = degToRad(60);
-  //Carrega interface
-  if(gui == null){
-    interfaceGUI();
-  }
+
 
  
   //Carrega as meshs dos objetos
@@ -302,6 +316,10 @@ function main() {
   console.log(sceneDescription);
 
 
+    //Carrega interface
+    if(gui == null){
+      interfaceGUI();
+    }
 
   requestAnimationFrame(drawScene);
 
@@ -336,7 +354,7 @@ function main() {
 
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
   
-    var fRotationRadians = degToRad(uiObj.rotation.y);
+    //var fRotationRadians = degToRad(uiObj.rotation.y);
 
     if(sceneDescription.children.length!=0){//verifica se a cena não esta vazia
 
@@ -347,10 +365,22 @@ function main() {
         }
       }*/
 
+      //console.log(`now ${now}, then ${then}`);
+      var deltaTime = time - then;
+      //console.log(deltaTime);
+      then = time;
+      for(ii=1;ii<=numberOfObjects;ii++)
+      {
+        //console.log(nodeInfosByName[ii].isSpining);
+
+        nodeInfosByName[ii].trs.rotation[1]+=(deltaTime*nodeInfosByName[ii].speed)*nodeInfosByName[ii].isSpining;
+      }
+
+
 
       if(objectControl.isObjectSelected){//meu objeto esta selecionado?  
             if(objectControl.spin){//meu objeto esta marcado para girar sozinho?
-              nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= (time*objectControl.speed)*objectControl.spin;
+              //nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= (time*objectControl.speed)*objectControl.spin;
             }
             else//se nao esta eu giro ele na mao
             {
@@ -377,9 +407,6 @@ function main() {
           //object.drawInfo.uniforms.u_viewWorldPosition = cameraPosition;
           //twgl.setTextureFromElement(gl, tex.crate, canvas);
       });
-
-     
-  
       
       // ------ Draw the objects --------
       twgl.drawObjectList(gl, objectsToDraw);
