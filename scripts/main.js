@@ -141,12 +141,12 @@ function loadTextures(){
                                 tnt:{src:"/textures/tnt.jpg"},
                                 life:{src:"/textures/life.jpeg"},
                                 d4dice:{src:"/textures/d4.jpg"},
-                                triangule:{src:"/textures/tri.jpg"},
+                                illuminati:{src:"/textures/illuminati.jpg"},
                                 rock:{src:"/textures/rocks.jpg"}});
 
   //seta um array de texturas para serem acessadas pelo seus indices
   
-  textureNames = ['crate','nitro','tnt','life','d4dice','triangule','rock'];
+  textureNames = ['crate','nitro','tnt','life','d4dice','illuminati','rock'];
 
   myTexturesArray =[
     tex.crate,
@@ -154,7 +154,7 @@ function loadTextures(){
     tex.tnt,
     tex.life,
     tex.d4dice,
-    tex.triangule,
+    tex.illuminati,
     tex.rock
   ]
 }

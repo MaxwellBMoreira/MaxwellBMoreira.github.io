@@ -49,12 +49,8 @@ function flipOut(){
 function addInMemoryObject(value){
 
   let anotherNewObj = {
-    //arrayOfObjects: [],
-    //selectedObj: null,
     selectedName: numberOfObjects,
     isObjectSelected: false,
-    //tudogira: false,
-    //interfaceObj[]
     spin: false,
     speed : 3,
     positionX: 0,
@@ -106,7 +102,6 @@ const cameraControl = {
 
     gui.destroy();
     interfaceGUI();
-    console.log(myCameras);
 
   }
 };
@@ -207,9 +202,9 @@ var objectControl ={
 
     flipIn();
 
-    loadNewObject(2,"triangule");
+    loadNewObject(2,"illuminati");
 
-    addInMemoryObject("triangule");
+    addInMemoryObject("illuminati");
 
     flipOut();
 
