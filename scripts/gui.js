@@ -128,6 +128,8 @@ var objectControl ={
   scaleY: 1,
   scaleZ: 1,
   scale: 1,
+  animarObjeto: false,
+  posOriginal: [0,0,0],
 
   ['Add Wood Crate']:function(){
     
@@ -211,8 +213,13 @@ var objectControl ={
   },
   ["Random Texture"]:function(){
     x=randInt(0,7);
-    nodeInfosByName[objectControl.selectedObj].node.drawInfo.uniforms.u_texture=myTexturesArray[x];
-    nodeInfosByName[objectControl.selectedObj].texture=myTexturesArray[x];
+    nodeInfosByName[objectControl.selectedObj].node.drawInfo.uniforms.u_texture=tex[textureNames[x]];
+    nodeInfosByName[objectControl.selectedObj].texture=tex[textureNames[x]];
+  },
+  ["Animar"]:function(){
+    posOriginal= nodeInfosByName[objectControl.selectedObj].trs.translation;
+    console.log(posOriginal);
+    animarObjeto = true;
   }
 }
 
@@ -243,7 +250,6 @@ const interfaceGUI = () => {
   objSpinSpeed = manipObjFolder.add(objectControl,"speed", 0, 6, 0.1);
   lookTexture = manipObjFolder.add(objectControl,"texture",textureNames).onChange(function(){
     nodeInfosByName[objectControl.selectedObj].node.drawInfo.uniforms.u_texture=tex[objectControl.texture];
-    //nodeInfosByName[objectControl.selectedObj].texture=objectControl.texture;
   })
   manipObjFolder.add(objectControl,"Random Texture")
   objTx = manipObjFolder.add(objectControl,"positionX",-10,10,0.1);
@@ -255,6 +261,7 @@ const interfaceGUI = () => {
   objSx = manipObjFolder.add(objectControl,"scaleX",-10,10,0.1);
   objSy = manipObjFolder.add(objectControl,"scaleY",-10,10,0.1);
   objSz = manipObjFolder.add(objectControl,"scaleZ",-10,10,0.1);
+  //      manipObjFolder.add(objectControl,"Animar");
   //objS  = manipObjFolder.add(objectControl,"scale",-10,10,0.1);
 
 

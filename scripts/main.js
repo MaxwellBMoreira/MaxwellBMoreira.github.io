@@ -11,7 +11,6 @@ var sceneDescription;
 var scene;
 var ii;
 var tex;
-var myTexturesArray;
 var bufferInfoArray;
 var vaoArray;
 var then;
@@ -148,15 +147,6 @@ function loadTextures(){
   
   textureNames = ['crate','nitro','tnt','life','d4dice','illuminati','rock'];
 
-  myTexturesArray =[
-    tex.crate,
-    tex.nitro,
-    tex.tnt,
-    tex.life,
-    tex.d4dice,
-    tex.illuminati,
-    tex.rock
-  ]
 }
 //========================================================================
 function loadObjBufferInfoAndVao(){
@@ -229,7 +219,6 @@ function main() {
   objects = [];
   listOfObjId=[];
   nodeInfosByName = {};
-  myTexturesArray = [];
   bufferInfoArray = [];
   vaoArray = [];
   
@@ -283,7 +272,7 @@ function main() {
   //Carrega todas as texturas
   loadTextures();
   console.log('All Textures');
-  console.log(myTexturesArray);
+  console.log(textureNames);
 
 
 
@@ -333,15 +322,7 @@ function main() {
     if(sceneDescription.children.length!=0){//verifica se a cena não esta vazia
 
 
-      /*if(objectControl.tudogira){
-        for(ii=1;ii<=numberOfObjects;ii++){
-          nodeInfosByName[ii].trs.rotation[1]= (time*objectControl.speed)*objectControl.tudogira;
-        }
-      }*/
-
-      //console.log(`now ${now}, then ${then}`);
       var deltaTime = time - then;
-      //console.log(deltaTime);
       then = time;
       for(ii=1;ii<=numberOfObjects;ii++)
       {
@@ -352,20 +333,21 @@ function main() {
 
 
 
-      if(objectControl.isObjectSelected){//meu objeto esta selecionado?  
-            if(objectControl.spin){//meu objeto esta marcado para girar sozinho?
-              //nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= (time*objectControl.speed)*objectControl.spin;
-            }
-            else//se nao esta eu giro ele na mao
-            {
-              nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= objectControl.rotateY;
-            }
+        if(objectControl.isObjectSelected && objectControl.selectedObj!=null){//meu objeto esta selecionado?  
+          if(objectControl.spin){//meu objeto esta marcado para girar sozinho?
+            //nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= (time*objectControl.speed)*objectControl.spin;
+          }
+          else//se nao esta eu giro ele na mao
+          {
+            nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= objectControl.rotateY;
+          }
+          nodeInfosByName[objectControl.selectedObj].trs.translation= [objectControl.positionX,objectControl.positionY,objectControl.positionZ];
+          nodeInfosByName[objectControl.selectedObj].trs.rotation[0]= objectControl.rotateX;
+          nodeInfosByName[objectControl.selectedObj].trs.rotation[2]= objectControl.rotateZ;
+          nodeInfosByName[objectControl.selectedObj].trs.scale= [objectControl.scaleX,objectControl.scaleY,objectControl.scaleZ];       
+    }
 
-            nodeInfosByName[objectControl.selectedObj].trs.translation= [objectControl.positionX,objectControl.positionY,objectControl.positionZ];
-            nodeInfosByName[objectControl.selectedObj].trs.rotation[0]= objectControl.rotateX;
-            nodeInfosByName[objectControl.selectedObj].trs.rotation[2]= objectControl.rotateZ;
-            nodeInfosByName[objectControl.selectedObj].trs.scale= [objectControl.scaleX,objectControl.scaleY,objectControl.scaleZ];      
-      }
+
   
       // Update all world matrices in the scene graph
       scene.updateWorldMatrix();
@@ -384,8 +366,7 @@ function main() {
       
       // ------ Draw the objects --------
       twgl.drawObjectList(gl, objectsToDraw);
-    }
-    
+    }   
 
     requestAnimationFrame(drawScene);
   }
