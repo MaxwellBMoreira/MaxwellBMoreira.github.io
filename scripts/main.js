@@ -1,5 +1,6 @@
 var numberOfObjects;
 var cameraCounter;
+var lightCounter;
 var newObjectVAO;
 var newObjectBufferInfo;
 var objectsToDraw;
@@ -70,13 +71,12 @@ function loadNewObject(objShape,objTexture){
   //limpa o console para ver os dados
   console.clear()
   
-
-  numberOfObjects++;
+  
 
   //monta um objeto novo para ser inserido na cena
   var newObj = {
-    name: `${numberOfObjects}`,
-    objID: numberOfObjects,
+    name: ``,
+    //objID: numberOfObjects,
     translation: [0, 0, 0],
     //rotation: [0, 0, 0],
     //scale: [1, 1, 1],
@@ -88,7 +88,23 @@ function loadNewObject(objShape,objTexture){
     vao: vaoArray[objShape],
   }
 
-  objectControl.arrayOfObjects.push(newObj.name);
+  if(objShape==3){
+    if(objTexture=="cam"){
+      newObj.name=`cam${cameraCounter}`;
+      newObj.translation = [0,5,20];
+    }
+    if(objTexture=="lamp"){
+      lightCounter++;
+      newObj.name=`light${lightCounter}`
+      newObj.translation = [0,5,0];
+    }
+  }else{
+    numberOfObjects++;
+    newObj.name=`${numberOfObjects}`;
+    objectControl.arrayOfObjects.push(newObj.name);
+  }
+
+  
 
   //Printa o conteudo do objeto
   console.log('Inserindo novo objeto na cena! Dados do objeto:');
@@ -141,11 +157,13 @@ function loadTextures(){
                                 life:{src:"/textures/life.jpeg"},
                                 d4dice:{src:"/textures/d4.jpg"},
                                 illuminati:{src:"/textures/illuminati.jpg"},
-                                rock:{src:"/textures/rocks.jpg"}});
+                                rock:{src:"/textures/rocks.jpg"},
+                                lamp:{src:"/textures/lamp.png"},
+                                cam:{src:"/textures/cam.png"}});
 
   //seta um array de texturas para serem acessadas pelo seus indices
   
-  textureNames = ['crate','nitro','tnt','life','d4dice','illuminati','rock'];
+  textureNames = ['crate','nitro','tnt','life','d4dice','illuminati','rock','lamp','cam'];
 
 }
 //========================================================================
@@ -157,7 +175,8 @@ function loadObjBufferInfoAndVao(){
   //armazena todas as URLS das descrições dos objetos
   let urls =["./objects/cube.json",
             "./objects/triPyramid.json",
-            "./objects/triangule.json"
+            "./objects/triangule.json",
+            "./objects/smallCube.json"
           ]
 
   let request = new XMLHttpRequest();
@@ -215,53 +234,15 @@ function main() {
   then=0;
   numberOfObjects = 0;
   cameraCounter = 0;
+  lightCounter=0;
   objectsToDraw = [];
   objects = [];
   listOfObjId=[];
   nodeInfosByName = {};
   bufferInfoArray = [];
   vaoArray = [];
+
   
-
-
-
-
-  // cria a cena em formato de arvore
-  sceneDescription =
-    {
-      name: "origin",
-      translation: [0,0,0],
-      rotation: [0,0,0],
-      scale: [0,0,0],
-      draw: false,
-      children: [],
-    };
-
-  //Cria cena inicial apenas com a origem nela
-  scene = makeNode(sceneDescription);
-
-  cameraCounter++;
-  let newCamera = {
-    index:cameraCounter,
-    posX:0,
-    posY:4,
-    posZ:20,
-    lookAtX: 0,
-    lookAtY: 0,
-    lookAtZ: 0,
-    upX:0,
-    upY:1,
-    upZ:0,
-  }
-
-  myCameras.push(newCamera);
-  cameraControl.arrayOfCameras.push(newCamera.index);
-
-  //Configura FOV
-  var fieldOfViewRadians = degToRad(60);
-
-
- 
   //Carrega as meshs dos objetos
   loadObjBufferInfoAndVao();
   console.log('objBufferInfo´s');
@@ -275,14 +256,94 @@ function main() {
   console.log(textureNames);
 
 
+  //Insere manualmente a primeira luz
+  lightCounter++;
+  let newLight ={
+
+    name:`light${lightCounter}`,
+    selectedLight: 1,
+    posX: 0,
+    posY: 5,
+    posZ: 0,
+    sX: 0.33,
+    sY: 0.33,
+    sZ: 0.33,
+  }
+  myLights.push(newLight);
+  lightControl.arrayOflights.push(newLight.name);
+
+  //insere manuelamente a primeira camera
+  cameraCounter++;
+  let newCamera = {
+    name:`cam${cameraCounter}`,
+    posX:0,
+    posY:4,
+    posZ:20,
+    lookAtX: 0,
+    lookAtY: 0,
+    lookAtZ: 0,
+    upX:0,
+    upY:1,
+    upZ:0,
+  }
+  myCameras.push(newCamera);
+  cameraControl.arrayOfCameras.push(cameraCounter);
+
+  
+  // cria a cena em formato de arvore
+  sceneDescription =
+    {
+      name: "origin",
+      index: numberOfObjects,
+      translation: [0,0,0],
+      rotation: [0,0,0],
+      scale: [0,0,0],
+      draw: false,
+      children: [
+        {
+          name: `light${lightCounter}`,
+          index:lightCounter,
+          draw: true,
+          translation: [lightControl.posX, lightControl.posY, lightControl.posZ],
+          texture: "lamp",
+          bufferInfo: bufferInfoArray[3],
+          vao: vaoArray[3],
+          children: [],
+        },
+        {
+          name: `cam${cameraCounter}`,
+          index:cameraCounter,
+          draw: true,
+          translation: [cameraControl.posX, cameraControl.posY, cameraControl.posZ],
+          texture: "cam",
+          bufferInfo: bufferInfoArray[3],
+          vao: vaoArray[3],
+          children: [],
+        }
+      ],
+    };
+
+  //Carrega interface
+  if(gui == null){
+    interfaceGUI();
+  }
+  
+  //Cria cena inicial apenas com a origem nela
+  scene = makeNode(sceneDescription);
+
+  //nodeInfosByName['light1'].trs.translation=[5,5,0];
+  //nodeInfosByName['light1'].trs.scale=[0.5,0.5,0.5];
+
+
+
+  //Configura FOV
+  var fieldOfViewRadians = degToRad(60);
+
 
   console.log(sceneDescription);
 
 
-    //Carrega interface
-    if(gui == null){
-      interfaceGUI();
-    }
+
 
   requestAnimationFrame(drawScene);
 
@@ -307,7 +368,7 @@ function main() {
     var projectionMatrix = m4.perspective(fieldOfViewRadians, aspect, 1, 200);
 
     // Compute the camera's matrix using look at.
-    var cameraPosition = [cameraControl.cameraPosX, cameraControl.cameraPosY, cameraControl.cameraPosZ];
+    var cameraPosition = [cameraControl.posX, cameraControl.posY, cameraControl.posZ];
     var target = [cameraControl.lookAtX, cameraControl.lookAtY, cameraControl.lookAtZ];
     var up = [cameraControl.upX, cameraControl.upY, cameraControl.upZ];
     var cameraMatrix = m4.lookAt(cameraPosition, target, up);

@@ -4,6 +4,7 @@ var lookTexture;
 
 var inMemoryObjects =[];
 var myCameras = [];
+var myLights =[];
 
 function flipIn(){
   if(numberOfObjects>0){
@@ -68,13 +69,27 @@ function addInMemoryObject(value){
   inMemoryObjects.push(anotherNewObj);
 }
 
+var lightControl ={
+
+  arrayOflights:[],
+  selectedLight: 1,
+  posX: 0,
+  posY: 5,
+  posZ: 0,
+  sX: 0.25,
+  sY: 0.25,
+  sZ: 0.25,
+
+}
+
 const cameraControl = {
 
   arrayOfCameras:[],
   selectedCamera: 1,
-  cameraPosX: 0,
-  cameraPosY: 4,
-  cameraPosZ: 20,
+  name: `cam1`,
+  posX: 0,
+  posY: 5,
+  posZ: 20,
   lookAtX: 0,
   lookAtY: 0,
   lookAtZ: 0,
@@ -83,11 +98,14 @@ const cameraControl = {
   upZ:0,
 
   ['Adicionar Camera']: function(){
+
+    console.log(">1");
     cameraCounter++;
     let newCamera = {
+      name:`cam${cameraCounter}`,
       index:cameraCounter,
       posX:0,
-      posY:4,
+      posY:5,
       posZ:20,
       lookAtX: 0,
       lookAtY: 0,
@@ -100,8 +118,13 @@ const cameraControl = {
     myCameras.push(newCamera);
     cameraControl.arrayOfCameras.push(newCamera.index);
 
-    gui.destroy();
-    interfaceGUI();
+    flipIn();
+
+    loadNewObject(3,"cam");
+
+    addInMemoryObject("cam");
+
+    flipOut();
 
   }
 };
@@ -309,9 +332,9 @@ const interfaceGUI = () => {
 
   const manipCamera = gui.addFolder('Manipulate Cameras')
     manipCamera.add(cameraControl,"selectedCamera",cameraControl.arrayOfCameras).onChange(function(value){
-      cameraControl.cameraPosX=myCameras[value-1].posX;
-      cameraControl.cameraPosY=myCameras[value-1].posY;
-      cameraControl.cameraPosZ=myCameras[value-1].posZ;
+      cameraControl.posX=myCameras[value-1].posX;
+      cameraControl.posY=myCameras[value-1].posY;
+      cameraControl.posZ=myCameras[value-1].posZ;
       cameraControl.lookAtX=myCameras[value-1].lookAtX;
       cameraControl.lookAtY=myCameras[value-1].lookAtY;
       cameraControl.lookAtZ=myCameras[value-1].lookAtZ;
@@ -322,14 +345,18 @@ const interfaceGUI = () => {
       interfaceGUI();
     })
 
-    manipCamera.add(cameraControl,"cameraPosX",-50, 50,0.1).onChange(function(value){
+    manipCamera.add(cameraControl,"posX",-50, 50,0.1).onChange(function(value){
+      //console.log(value);
       myCameras[cameraControl.selectedCamera-1].posX=value;
+      nodeInfosByName[`cam${cameraControl.selectedCamera}`].trs.translation[0]=value;
     })
-    manipCamera.add(cameraControl,"cameraPosY",-50, 50, 0.1).onChange(function(value){
+    manipCamera.add(cameraControl,"posY",-50, 50, 0.1).onChange(function(value){
       myCameras[cameraControl.selectedCamera-1].posY=value;
+      nodeInfosByName[`cam${cameraControl.selectedCamera}`].trs.translation[1]=value;
     })
-    manipCamera.add(cameraControl,"cameraPosZ",-50,50,0.1).onChange(function(value){
+    manipCamera.add(cameraControl,"posZ",-50,50,0.1).onChange(function(value){
       myCameras[cameraControl.selectedCamera-1].posZ=value;
+      nodeInfosByName[`cam${cameraControl.selectedCamera}`].trs.translation[2]=value;
     })
     manipCamera.add(cameraControl,"lookAtX",-30, 30,0.01).onChange(function(value){
       myCameras[cameraControl.selectedCamera-1].lookAtX=value;
@@ -349,8 +376,19 @@ const interfaceGUI = () => {
     manipCamera.add(cameraControl,"upZ",-2,2,0.001).onChange(function(value){
       myCameras[cameraControl.selectedCamera-1].upZ=value;
     })
-
     manipCamera.add(cameraControl,"Adicionar Camera");
+
+    var manipLight = gui.addFolder('Manipulate Lights')
+
+    manipLight.add(lightControl,"posX",-50, 50,0.1).onChange(function(value){
+      //myCameras[cameraControl.selectedCamera-1].posX=value;
+    })
+    manipLight.add(lightControl,"posY",-50, 50, 0.1).onChange(function(value){
+      //myCameras[cameraControl.selectedCamera-1].posY=value;
+    })
+    manipLight.add(lightControl,"posZ",-50,50,0.1).onChange(function(value){
+      //myCameras[cameraControl.selectedCamera-1].posZ=value;
+    })
 
 }
 
