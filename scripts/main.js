@@ -16,6 +16,18 @@ var bufferInfoArray;
 var vaoArray;
 var then;
 
+var palette = {
+  corLuz: [255, 255, 255], // RGB array
+  corCubo: [255, 255, 255], // RGB array
+  corSpec: [255, 255, 255], // RGB array
+};
+
+var arrLuz = [
+  new Luz([4, 0, 0], [255, 255, 255], [255, 255, 255], 300),
+  new Luz([-4, 0, 0], [255, 255, 255], [255, 255, 255], 300),
+  new Luz([5, 4, 8], [255, 255, 255], [255, 255, 255], 300),
+];
+
 function makeNode(nodeDescription) {
   //console.log('A');
 
@@ -94,7 +106,6 @@ function loadNewObject(objShape,objTexture){
       newObj.translation = [0,5,20];
     }
     if(objTexture=="lamp"){
-      lightCounter++;
       newObj.name=`light${lightCounter}`
       newObj.translation = [0,5,0];
     }
@@ -237,7 +248,7 @@ function main() {
   lightCounter=0;
   objectsToDraw = [];
   objects = [];
-  listOfObjId=[];
+  //listOfObjId=[];
   nodeInfosByName = {};
   bufferInfoArray = [];
   vaoArray = [];
@@ -261,16 +272,17 @@ function main() {
   let newLight ={
 
     name:`light${lightCounter}`,
+    index: lightCounter,
     selectedLight: 1,
     posX: 0,
     posY: 5,
     posZ: 0,
-    sX: 0.33,
-    sY: 0.33,
-    sZ: 0.33,
+    color: [255,255,255],
+    specular: [255,255,255],
+    shininess:300,
   }
   myLights.push(newLight);
-  lightControl.arrayOflights.push(newLight.name);
+  lightControl.arrayOfLights.push(newLight.index);
 
   //insere manuelamente a primeira camera
   cameraCounter++;
@@ -331,6 +343,68 @@ function main() {
   //Cria cena inicial apenas com a origem nela
   scene = makeNode(sceneDescription);
 
+  objects.forEach(function (object) {
+    object.drawInfo.uniforms.u_lightWorldPosition0 = [
+      myLights[0].posX,
+      myLights[0].posY,
+      myLights[0].posZ,
+    ];
+    /*
+    object.drawInfo.uniforms.u_lightWorldPosition0 = [
+      myLights[1].posX,
+      myLights[2].posY,
+      myLights[3].posZ,
+    ];
+    object.drawInfo.uniforms.u_lightWorldPosition2 = [
+      arrLuz[2].position.x,
+      arrLuz[2].position.y,
+      arrLuz[2].position.z,
+    ];*/
+
+    object.drawInfo.uniforms.u_lightColor0 = [
+      convertToZeroOne(myLights[0].color[0], 0, 255),
+      convertToZeroOne(myLights[0].color[1], 0, 255),
+      convertToZeroOne(myLights[0].color[2], 0, 255),
+    ];
+    /*
+    object.drawInfo.uniforms.u_lightColor1 = [
+      convertToZeroOne(arrLuz[1].color[0], 0, 255),
+      convertToZeroOne(arrLuz[1].color[1], 0, 255),
+      convertToZeroOne(arrLuz[1].color[2], 0, 255),
+    ];
+    object.drawInfo.uniforms.u_lightColor2 = [
+      convertToZeroOne(arrLuz[2].color[0], 0, 255),
+      convertToZeroOne(arrLuz[2].color[1], 0, 255),
+      convertToZeroOne(arrLuz[2].color[2], 0, 255),
+    ];
+    */
+
+    object.drawInfo.uniforms.u_color = [
+      convertToZeroOne(palette["corCubo"][0], 0, 255),
+      convertToZeroOne(palette["corCubo"][1], 0, 255),
+      convertToZeroOne(palette["corCubo"][2], 0, 255),
+      1,
+    ];
+
+    object.drawInfo.uniforms.u_specularColor0 = [
+      convertToZeroOne(myLights[0].specular[0], 0, 255),
+      convertToZeroOne(myLights[0].specular[1], 0, 255),
+      convertToZeroOne(myLights[0].specular[2], 0, 255),
+    ];
+
+    /*
+    object.drawInfo.uniforms.u_specularColor1 = [
+      convertToZeroOne(arrLuz[1].spec[0], 0, 255),
+      convertToZeroOne(arrLuz[1].spec[1], 0, 255),
+      convertToZeroOne(arrLuz[1].spec[2], 0, 255),
+    ];
+    object.drawInfo.uniforms.u_specularColor2 = [
+      convertToZeroOne(arrLuz[2].spec[0], 0, 255),
+      convertToZeroOne(arrLuz[2].spec[1], 0, 255),
+      convertToZeroOne(arrLuz[2].spec[2], 0, 255),
+    ];*/
+  });
+
   //nodeInfosByName['light1'].trs.translation=[5,5,0];
   //nodeInfosByName['light1'].trs.scale=[0.5,0.5,0.5];
 
@@ -341,6 +415,8 @@ function main() {
 
 
   console.log(sceneDescription);
+  console.log(myCameras);
+  console.log(myLights);
 
 
 
@@ -415,7 +491,93 @@ function main() {
   
       // Compute all the matrices for rendering
       objects.forEach(function(object) {
-          object.drawInfo.uniforms.u_matrix = m4.multiply(viewProjectionMatrix, object.worldMatrix);
+        
+        object.drawInfo.uniforms.u_matrix = m4.multiply(
+          viewProjectionMatrix,
+          object.worldMatrix
+        );
+
+        /*
+        object.drawInfo.uniforms.u_lightWorldPosition0 = [
+          myLights[0].posX,
+          myLights[0].posY,
+          myLights[0].posZ,
+        ];
+        object.drawInfo.uniforms.u_lightWorldPosition1 = [
+          myLights[0].posX,
+          myLights[0].posY,
+          myLights[0].posZ,
+        ];
+        object.drawInfo.uniforms.u_lightWorldPosition2 = [
+          myLights[0].posX,
+          myLights[0].posY,
+          myLights[0].posZ,
+        ];
+        
+        object.drawInfo.uniforms.u_lightColor0 = [
+          convertToZeroOne(myLights[0].color[0], 0, 255),
+          convertToZeroOne(myLights[0].color[1], 0, 255),
+          convertToZeroOne(myLights[0].color[2], 0, 255),
+        ];
+
+        object.drawInfo.uniforms.u_lightColor1 = [
+          convertToZeroOne(myLights[0].color[0], 0, 255),
+          convertToZeroOne(myLights[0].color[1], 0, 255),
+          convertToZeroOne(myLights[0].color[2], 0, 255),
+        ];
+        object.drawInfo.uniforms.u_lightColor2 = [
+          convertToZeroOne(myLights[0].color[0], 0, 255),
+          convertToZeroOne(myLights[0].color[1], 0, 255),
+          convertToZeroOne(myLights[0].color[2], 0, 255),
+        ];
+    
+        object.drawInfo.uniforms.u_color = [
+          convertToZeroOne(palette["corCubo"][0], 0, 255),
+          convertToZeroOne(palette["corCubo"][1], 0, 255),
+          convertToZeroOne(palette["corCubo"][2], 0, 255),
+          1,
+        ];
+        // console.log(object.drawInfo.uniforms.u_lightColor);
+        // console.log(object.drawInfo.uniforms.u_color);
+        object.drawInfo.uniforms.u_specularColor0 = [
+          convertToZeroOne(myLights[0].specular[0], 0, 255),
+          convertToZeroOne(myLights[0].specular[1], 0, 255),
+          convertToZeroOne(myLights[0].specular[2], 0, 255),
+        ];
+
+        object.drawInfo.uniforms.u_specularColor1 = [
+          convertToZeroOne(myLights[0].specular[0], 0, 255),
+          convertToZeroOne(myLights[0].specular[1], 0, 255),
+          convertToZeroOne(myLights[0].specular[2], 0, 255),
+        ];
+        object.drawInfo.uniforms.u_specularColor2 = [
+          convertToZeroOne(myLights[0].specular[0], 0, 255),
+          convertToZeroOne(myLights[0].specular[1], 0, 255),
+          convertToZeroOne(myLights[0].specular[2], 0, 255),
+        ];
+    
+        object.drawInfo.uniforms.u_color = [
+          convertToZeroOne(palette["corCubo"][0], 0, 255),
+          convertToZeroOne(palette["corCubo"][1], 0, 255),
+          convertToZeroOne(palette["corCubo"][2], 0, 255),
+          1,
+        ];*/
+        
+        object.drawInfo.uniforms.u_world = object.worldMatrix;
+    
+        object.drawInfo.uniforms.u_worldInverseTranspose = m4.transpose(
+          m4.inverse(object.worldMatrix)
+        );
+    
+        object.drawInfo.uniforms.u_viewWorldPosition = cameraPosition;
+    
+        object.drawInfo.uniforms.u_shininess = lightControl.shininess;
+      
+          
+        
+        
+        
+        //object.drawInfo.uniforms.u_matrix = m4.multiply(viewProjectionMatrix, object.worldMatrix);
 
           //object.drawInfo.uniforms.u_world = m4.multiply(object.worldMatrix, m4.yRotation(fRotationRadians));
 
