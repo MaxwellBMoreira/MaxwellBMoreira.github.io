@@ -115,8 +115,8 @@ const cameraControl = {
   selectedCamera: 1,
   name: `cam1`,
   posX: 0,
-  posY: 5,
-  posZ: 20,
+  posY: 0,
+  posZ: 35,
   lookAtX: 0,
   lookAtY: 0,
   lookAtZ: 0,
@@ -132,8 +132,8 @@ const cameraControl = {
       name:`cam${cameraCounter}`,
       index:cameraCounter,
       posX:0,
-      posY:5,
-      posZ:20,
+      posY:0,
+      posZ:35,
       lookAtX: 0,
       lookAtY: 0,
       lookAtZ: 0,
@@ -159,7 +159,7 @@ const cameraControl = {
 
 var objectControl ={
 
-  arrayOfObjects: [],
+  //controlArrayObjects: [],
   selectedObj: null,
   selectedName:'',
   isObjectSelected: false,
@@ -283,7 +283,7 @@ const interfaceGUI = () => {
   let objSpinSpeed;
 
   var manipObjFolder = gui.addFolder('Manipulate Objects');
-  objIndex = manipObjFolder.add(objectControl,"selectedName",objectControl.arrayOfObjects);
+  //objIndex = manipObjFolder.add(objectControl,"selectedName",controlArrayObjects);
     //manipObjFolder.add(objectControl,"tudogira");
   objIsSpining = manipObjFolder.add(objectControl,"spin");
   objSpinSpeed = manipObjFolder.add(objectControl,"speed", 0, 6, 0.1);
@@ -304,7 +304,7 @@ const interfaceGUI = () => {
   //objS  = manipObjFolder.add(objectControl,"scale",-10,10,0.1);
 
 
-  objIndex.onChange(function(value){
+  /*objIndex.onChange(function(value){
     x = value;
     objectControl.selectedObj=x;
     objectControl.isObjectSelected=true;
@@ -324,7 +324,7 @@ const interfaceGUI = () => {
 
     gui.destroy();
     interfaceGUI();
-  })
+  })*/
 
   objIsSpining.onChange(function(value){
       nodeInfosByName[objectControl.selectedObj].isSpining = value;
@@ -396,7 +396,7 @@ const interfaceGUI = () => {
 
 
 
-    const manipLight = gui.addFolder('Manipulate Lights')
+    /*const manipLight = gui.addFolder('Manipulate Lights')
 
     manipLight.add(lightControl,"selectedLight",lightControl.arrayOfLights).onChange(function(value){
       manipLight.posX=myLights[value-1].posX;
@@ -420,6 +420,7 @@ const interfaceGUI = () => {
       nodeInfosByName[`light${lightControl.selectedLight}`].trs.translation[2]=value;
     })
     manipLight.add(lightControl,"Adicionar Luz");
+    */
 
 }
 

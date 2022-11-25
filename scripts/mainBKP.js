@@ -1,4 +1,6 @@
 var numberOfObjects;
+var cameraCounter;
+var lightCounter;
 var newObjectVAO;
 var newObjectBufferInfo;
 var objectsToDraw;
@@ -10,24 +12,43 @@ var sceneDescription;
 var scene;
 var ii;
 var tex;
-var myTexturesArray;
 var bufferInfoArray;
 var vaoArray;
+var then;
+
+var palette = {
+  corLuz: [255, 255, 255], // RGB array
+  corCubo: [255, 255, 255], // RGB array
+  corSpec: [255, 255, 255], // RGB array
+};
+
+var arrLuz = [
+  new Luz([4, 0, 0], [255, 255, 255], [255, 255, 255], 300),
+  new Luz([-4, 0, 0], [255, 255, 255], [255, 255, 255], 300),
+  new Luz([5, 4, 8], [255, 255, 255], [255, 255, 255], 300),
+];
 
 function makeNode(nodeDescription) {
+  //console.log('A');
+
+  console.log(nodeDescription.name);
+
   var trs  = new TRS();
   var node = new Node(trs);
 
   nodeInfosByName[nodeDescription.name] = {
     trs: trs,
     node: node,
+    isSpining: false,
+    speed: 3,
   };
+
   trs.translation = nodeDescription.translation || trs.translation;
   if (nodeDescription.draw !== false) {
         node.drawInfo = {
         uniforms: {
-          u_colorMult: [1, 1, 1, 1],
-          u_texture: nodeDescription.texture,
+          //u_colorMult: [1, 1, 1, 1],
+          u_texture: tex[nodeDescription.texture],
           u_matrix: m4.identity(),
         },
         programInfo: programInfo,
@@ -56,30 +77,45 @@ const calculateBarycentric = (length) => {
   return barycentric;
 };
 
-//funcao que carrega um novo objeto atraves do arquivo
+//funcao que carrega um novo objeto atraves do arquivo ===============================
 function loadNewObject(objShape,objTexture){
   
   //limpa o console para ver os dados
   console.clear()
-
-  numberOfObjects++;
+  
+  
 
   //monta um objeto novo para ser inserido na cena
   var newObj = {
-    name: `${numberOfObjects}`,
-    objID: numberOfObjects,
+    name: ``,
+    //objID: numberOfObjects,
     translation: [0, 0, 0],
-    rotation: [0, 0, 0],
-    scale: [1, 1, 1],
+    //rotation: [0, 0, 0],
+    //scale: [1, 1, 1],
     children: [],
     //carrega a textura do array de texturas
-    texture: myTexturesArray[objTexture],
+    texture: objTexture,
     //carega bufferInfo e Vao dos respectivos arrays
     bufferInfo: bufferInfoArray[objShape],
     vao: vaoArray[objShape],
   }
- 
 
+  if(objShape==3){
+    if(objTexture=="cam"){
+      newObj.name=`cam${cameraCounter}`;
+      newObj.translation = [0,5,20];
+    }
+    if(objTexture=="lamp"){
+      newObj.name=`light${lightCounter}`
+      newObj.translation = [0,5,0];
+    }
+  }else{
+    numberOfObjects++;
+    newObj.name=`${numberOfObjects}`;
+    objectControl.arrayOfObjects.push(newObj.name);
+  }
+
+  
 
   //Printa o conteudo do objeto
   console.log('Inserindo novo objeto na cena! Dados do objeto:');
@@ -89,7 +125,7 @@ function loadNewObject(objShape,objTexture){
   addObjectToScene(newObj);
 }
 
-//insere o objeto na cena e recria a cena
+//insere o objeto na cena e recria a cena ==================================
 function addObjectToScene(obj){
 
   //Coloca o objeto como "filho da origem"
@@ -100,7 +136,11 @@ function addObjectToScene(obj){
   nodeInfosByName = {};
 
   //recria a cena com o novo objeto
+  //console.log('antes:'+scene);
   scene = makeNode(sceneDescription);
+  gui.destroy();
+  gui=null;
+  //console.log('depois:'+scene);
 
   console.log('_______Situação atual dos arrays_______');
   console.log('nodeInfosByName');
@@ -116,6 +156,8 @@ function addObjectToScene(obj){
   console.log(sceneDescription);
 }
 
+
+//==================================================================================
 function loadTextures(){
   console.log('Loading textures...')
 
@@ -124,20 +166,18 @@ function loadTextures(){
                                 nitro:{src:"/textures/nitro.png"},
                                 tnt:{src:"/textures/tnt.jpg"},
                                 life:{src:"/textures/life.jpeg"},
-                                d4:{src:"/textures/d4.jpg"},
-                                tri:{src:"/textures/tri.jpg"}});
+                                d4dice:{src:"/textures/d4.jpg"},
+                                illuminati:{src:"/textures/illuminati.jpg"},
+                                rock:{src:"/textures/rocks.jpg"},
+                                lamp:{src:"/textures/lamp.png"},
+                                cam:{src:"/textures/cam.png"}});
 
   //seta um array de texturas para serem acessadas pelo seus indices
-  myTexturesArray =[
-    tex.crate,
-    tex.nitro,
-    tex.tnt,
-    tex.life,
-    tex.d4,
-    tex.tri
-  ]
-}
+  
+  textureNames = ['crate','nitro','tnt','life','d4dice','illuminati','rock','lamp','cam'];
 
+}
+//========================================================================
 function loadObjBufferInfoAndVao(){
   console.log('Loading Obj Infos')
 
@@ -146,7 +186,8 @@ function loadObjBufferInfoAndVao(){
   //armazena todas as URLS das descrições dos objetos
   let urls =["./objects/cube.json",
             "./objects/triPyramid.json",
-            "./objects/triangule.json"
+            "./objects/triangule.json",
+            "./objects/smallCube.json"
           ]
 
   let request = new XMLHttpRequest();
@@ -182,14 +223,12 @@ function loadObjBufferInfoAndVao(){
   //cria o VAO baseado nos buffers
   newObjectVAO = twgl.createVAOFromBufferInfo(gl, programInfo, newObjectBufferInfo);
   
-  //Insere bufferInfos e VAOS nos respectivos arrays
+  //Insere bufferInfos e VAOS nos respectivos arrays 
   bufferInfoArray.push(newObjectBufferInfo);
   vaoArray.push(newObjectVAO);
 })
-  
-
 }
-
+//==========================================================================
 function main() {
 
 //"use strict";
@@ -203,36 +242,18 @@ function main() {
   //blueGUI();
   //greenGUI();
   
-
+  then=0;
   numberOfObjects = 0;
+  cameraCounter = 0;
+  lightCounter=0;
   objectsToDraw = [];
   objects = [];
-  listOfObjId=[];
+  //listOfObjId=[];
   nodeInfosByName = {};
-  myTexturesArray = [];
   bufferInfoArray = [];
   vaoArray = [];
+
   
-
-
-
-
-  // cria a cena em formato de arvore
-  sceneDescription =
-    {
-      name: "origin",
-      draw: false,
-      children: [],
-    };
-
-  //Cria cena inicial apenas com a origem nela
-  scene = makeNode(sceneDescription);
-
-  //Configura FOV
-  var fieldOfViewRadians = degToRad(60);
-  //Carrega interface
-  interfaceGUI();
- 
   //Carrega as meshs dos objetos
   loadObjBufferInfoAndVao();
   console.log('objBufferInfo´s');
@@ -243,11 +264,94 @@ function main() {
   //Carrega todas as texturas
   loadTextures();
   console.log('All Textures');
-  console.log(myTexturesArray);
+  console.log(textureNames);
 
+
+  //Insere manualmente a primeira luz
+  lightCounter++;
+  let newLight ={
+
+    name:`light${lightCounter}`,
+    index: lightCounter,
+    selectedLight: 1,
+    posX: 0,
+    posY: 5,
+    posZ: 0,
+    color: [255,255,255],
+    specular: [255,255,255],
+    shininess:300,
+  }
+  myLights.push(newLight);
+  lightControl.arrayOfLights.push(newLight.index);
+
+  //insere manuelamente a primeira camera
+  cameraCounter++;
+  let newCamera = {
+    name:`cam${cameraCounter}`,
+    posX:0,
+    posY:4,
+    posZ:20,
+    lookAtX: 0,
+    lookAtY: 0,
+    lookAtZ: 0,
+    upX:0,
+    upY:1,
+    upZ:0,
+  }
+  myCameras.push(newCamera);
+  cameraControl.arrayOfCameras.push(cameraCounter);
+
+  
+  // cria a cena em formato de arvore
+  sceneDescription =
+    {
+      name: "origin",
+      index: numberOfObjects,
+      translation: [0,0,0],
+      rotation: [0,0,0],
+      scale: [0,0,0],
+      draw: false,
+      children: [
+        {
+          name: `light${lightCounter}`,
+          index:lightCounter,
+          draw: true,
+          translation: [lightControl.posX, lightControl.posY, lightControl.posZ],
+          texture: "lamp",
+          bufferInfo: bufferInfoArray[3],
+          vao: vaoArray[3],
+          children: [],
+        },
+        {
+          name: `cam${cameraCounter}`,
+          index:cameraCounter,
+          draw: true,
+          translation: [cameraControl.posX, cameraControl.posY, cameraControl.posZ],
+          texture: "cam",
+          bufferInfo: bufferInfoArray[3],
+          vao: vaoArray[3],
+          children: [],
+        }
+      ],
+    };
+
+  //Carrega interface
+  if(gui == null){
+    interfaceGUI();
+  }
+  
+  //Cria cena inicial apenas com a origem nela
+  scene = makeNode(sceneDescription);
+
+
+  //Configura FOV
+  var fieldOfViewRadians = degToRad(60);
 
 
   console.log(sceneDescription);
+  console.log(myCameras);
+  console.log(myLights);
+
 
 
 
@@ -256,6 +360,9 @@ function main() {
   // Draw the scene.
   function drawScene(time) {
     time *= 0.001;
+    if(gui == null){
+      interfaceGUI();
+    }
     
 
     twgl.resizeCanvasToDisplaySize(gl.canvas);
@@ -271,9 +378,9 @@ function main() {
     var projectionMatrix = m4.perspective(fieldOfViewRadians, aspect, 1, 200);
 
     // Compute the camera's matrix using look at.
-    var cameraPosition = [cameraControl.cameraPosX, cameraControl.cameraPosY, cameraControl.cameraPosZ];
-    var target = [0, 0, 0];
-    var up = [0, 1, 0];
+    var cameraPosition = [cameraControl.posX, cameraControl.posY, cameraControl.posZ];
+    var target = [cameraControl.lookAtX, cameraControl.lookAtY, cameraControl.lookAtZ];
+    var up = [cameraControl.upX, cameraControl.upY, cameraControl.upZ];
     var cameraMatrix = m4.lookAt(cameraPosition, target, up);
 
     // Make a view matrix from the camera matrix.
@@ -281,49 +388,63 @@ function main() {
 
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
   
+    //var fRotationRadians = degToRad(uiObj.rotation.y);
 
-    if(sceneDescription.children.length!=0){//Verifica se a cena não esta vazia
-      if(objectControl.tudogira){
-        for(ii=1;ii<=numberOfObjects;ii++){
-          nodeInfosByName[ii].trs.rotation[1]= (time*objectControl.speed)*objectControl.tudogira;
-        }
+    if(sceneDescription.children.length!=0){//verifica se a cena não esta vazia
 
-      }else{
-        if(objectControl.spin){
-          nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= (time*objectControl.speed)*objectControl.spin;
-        }
-        else
-        {
-          nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= objectControl.rotateY;
-        }
+
+      var deltaTime = time - then;
+      then = time;
+      for(ii=1;ii<=numberOfObjects;ii++)
+      {
+        //console.log(nodeInfosByName[ii].isSpining);
+
+        nodeInfosByName[ii].trs.rotation[1]+=(deltaTime*nodeInfosByName[ii].speed)*nodeInfosByName[ii].isSpining;
       }
-      
-     
-  
-  
-      //controla a animação e velocidade de rotação dos objetos
-      nodeInfosByName[objectControl.selectedObj].trs.translation= [objectControl.positionX,objectControl.positionY,objectControl.positionZ];
-      nodeInfosByName[objectControl.selectedObj].trs.rotation[0]= objectControl.rotateX;
-      nodeInfosByName[objectControl.selectedObj].trs.rotation[2]= objectControl.rotateZ;
-      nodeInfosByName[objectControl.selectedObj].trs.scale= [objectControl.scale,objectControl.scale,objectControl.scale];
-  
+
+
+
+        if(objectControl.isObjectSelected && objectControl.selectedObj!=null){//meu objeto esta selecionado?  
+          if(objectControl.spin){//meu objeto esta marcado para girar sozinho?
+            //nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= (time*objectControl.speed)*objectControl.spin;
+          }
+          else//se nao esta eu giro ele na mao
+          {
+            nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= objectControl.rotateY;
+          }
+          nodeInfosByName[objectControl.selectedObj].trs.translation= [objectControl.positionX,objectControl.positionY,objectControl.positionZ];
+          nodeInfosByName[objectControl.selectedObj].trs.rotation[0]= objectControl.rotateX;
+          nodeInfosByName[objectControl.selectedObj].trs.rotation[2]= objectControl.rotateZ;
+          nodeInfosByName[objectControl.selectedObj].trs.scale= [objectControl.scaleX,objectControl.scaleY,objectControl.scaleZ];       
+    }
+
+
   
       // Update all world matrices in the scene graph
       scene.updateWorldMatrix();
   
       // Compute all the matrices for rendering
       objects.forEach(function(object) {
-          object.drawInfo.uniforms.u_matrix = m4.multiply(viewProjectionMatrix, object.worldMatrix);
-          //twgl.setTextureFromElement(gl, tex.crate, canvas);
-      });
+        
+        object.drawInfo.uniforms.u_matrix = m4.multiply(
+          viewProjectionMatrix,
+          object.worldMatrix
+        );
 
-     
-  
+        
+        object.drawInfo.uniforms.u_world = object.worldMatrix;
+    
+        object.drawInfo.uniforms.u_worldInverseTranspose = m4.transpose(
+          m4.inverse(object.worldMatrix)
+        );
+    
+        object.drawInfo.uniforms.u_viewWorldPosition = cameraPosition;
+    
+      });
       
       // ------ Draw the objects --------
       twgl.drawObjectList(gl, objectsToDraw);
-    }
-    
+    }   
 
     requestAnimationFrame(drawScene);
   }

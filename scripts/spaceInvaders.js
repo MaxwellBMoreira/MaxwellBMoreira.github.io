@@ -15,6 +15,8 @@ var tex;
 var bufferInfoArray;
 var vaoArray;
 var then;
+var enemyCounter;
+var arrayOfObjects;
 
 var palette = {
   corLuz: [255, 255, 255], // RGB array
@@ -31,13 +33,14 @@ var arrLuz = [
 function makeNode(nodeDescription) {
   //console.log('A');
 
-  console.log(nodeDescription.name);
+  //console.log(nodeDescription.name);
 
   var trs  = new TRS();
   var node = new Node(trs);
 
   nodeInfosByName[nodeDescription.name] = {
     trs: trs,
+    origin: nodeDescription.originalPosition,
     node: node,
     isSpining: false,
     speed: 3,
@@ -81,7 +84,7 @@ const calculateBarycentric = (length) => {
 function loadNewObject(objShape,objTexture){
   
   //limpa o console para ver os dados
-  console.clear()
+  //console.clear()
   
   
 
@@ -229,6 +232,54 @@ function loadObjBufferInfoAndVao(){
 })
 }
 //==========================================================================
+
+function insereInimigosNaCena(qtd){
+var j;
+
+    for(j=1;j<=qtd;j++){
+        for(i=1;i<=qtd;i++){
+            let newObj = {
+                name: `${numberOfObjects}`,
+                //objID: numberOfObjects,
+                translation: [i*4, j*4, 0],
+                originalPosition: [i*4, j*4, 0],
+                //rotation: [0, 0, 0],
+                //scale: [1, 1, 1],
+                children: [],
+                //carrega a textura do array de texturas
+                texture: 'nitro',
+                //carega bufferInfo e Vao dos respectivos arrays
+                bufferInfo: bufferInfoArray[0],
+                vao: vaoArray[0],
+            }
+            numberOfObjects++;
+            newObj.name=`${numberOfObjects}`;
+            arrayOfObjects.push(newObj.name);
+            sceneDescription.children.push(newObj);
+    
+    
+            newObj = {
+                name: `${numberOfObjects}`,
+                //objID: numberOfObjects,
+                translation: [-i*4, j*4, 0],
+                originalPosition: [-i*4, j*4, 0],
+                //rotation: [0, 0, 0],
+                //scale: [1, 1, 1],
+                children: [],
+                //carrega a textura do array de texturas
+                texture: 'nitro',
+                //carega bufferInfo e Vao dos respectivos arrays
+                bufferInfo: bufferInfoArray[0],
+                vao: vaoArray[0],
+            }
+            numberOfObjects++;
+            newObj.name=`${numberOfObjects}`;
+            arrayOfObjects.push(newObj.name);
+            sceneDescription.children.push(newObj);
+              }
+    }
+}
+
 function main() {
 
 //"use strict";
@@ -248,26 +299,29 @@ function main() {
   lightCounter=0;
   objectsToDraw = [];
   objects = [];
+  arrayOfObjects = [];
   //listOfObjId=[];
   nodeInfosByName = {};
   bufferInfoArray = [];
   vaoArray = [];
+  enemyCounter=2;
 
   
   //Carrega as meshs dos objetos
   loadObjBufferInfoAndVao();
-  console.log('objBufferInfo´s');
-  console.log(bufferInfoArray);
-  console.log('objVAO´s');
-  console.log(vaoArray);
+  //console.log('objBufferInfo´s');
+  //console.log(bufferInfoArray);
+  //console.log('objVAO´s');
+  //console.log(vaoArray);
   
   //Carrega todas as texturas
   loadTextures();
-  console.log('All Textures');
-  console.log(textureNames);
+  //console.log('All Textures');
+  //console.log(textureNames);
 
 
   //Insere manualmente a primeira luz
+  /*
   lightCounter++;
   let newLight ={
 
@@ -283,6 +337,7 @@ function main() {
   }
   myLights.push(newLight);
   lightControl.arrayOfLights.push(newLight.index);
+  */
 
   //insere manuelamente a primeira camera
   cameraCounter++;
@@ -313,25 +368,35 @@ function main() {
       draw: false,
       children: [
         {
-          name: `light${lightCounter}`,
-          index:lightCounter,
+            name: `cam${cameraCounter}`,
+            index:cameraCounter,
+            draw: true,
+            translation: [cameraControl.posX, cameraControl.posY, cameraControl.posZ],
+            texture: "cam",
+            bufferInfo: bufferInfoArray[3],
+            vao: vaoArray[3],
+            children: [],
+        },
+        {
+          name: `player`,
+          index:1,
           draw: true,
-          translation: [lightControl.posX, lightControl.posY, lightControl.posZ],
-          texture: "lamp",
-          bufferInfo: bufferInfoArray[3],
-          vao: vaoArray[3],
+          translation: [0, -7, 0],
+          texture: "life",
+          bufferInfo: bufferInfoArray[0],
+          vao: vaoArray[0],
           children: [],
         },
         {
-          name: `cam${cameraCounter}`,
-          index:cameraCounter,
-          draw: true,
-          translation: [cameraControl.posX, cameraControl.posY, cameraControl.posZ],
-          texture: "cam",
-          bufferInfo: bufferInfoArray[3],
-          vao: vaoArray[3],
-          children: [],
-        }
+            name: `2`,
+            index:2,
+            draw: true,
+            translation: [0, 3, 0],
+            texture: "nitro",
+            bufferInfo: bufferInfoArray[0],
+            vao: vaoArray[0],
+            children: [],
+        },    
       ],
     };
 
@@ -341,17 +406,65 @@ function main() {
   }
   
   //Cria cena inicial apenas com a origem nela
+
+  //insereInimigosNaCena(enemyCounter);
+
   scene = makeNode(sceneDescription);
 
 
   //Configura FOV
   var fieldOfViewRadians = degToRad(60);
 
-
+  console.log('_______Situação atual dos arrays_______');
+  console.log('nodeInfosByName');
+  console.log(nodeInfosByName);
+  
+  console.log('ObjectsToDraw:');
+  console.log(objectsToDraw);
+  
+  console.log('Objects:');
+  console.log(objects);
+  
+  console.log('sceneDescription');
   console.log(sceneDescription);
-  console.log(myCameras);
-  console.log(myLights);
 
+  var modifier = 0.75;
+
+  const bodyElement = document.querySelector("body");
+
+    
+    //var fRotationRadians = degToRad(uiObj.rotation.y);
+    bodyElement.addEventListener("keydown", gameAction , false );
+    //bodyElement.addEventListener("keypress", cFunction , false );
+  
+    function gameAction(event){
+      switch(event.key){
+          case 'a': nodeInfosByName['player'].trs.translation[0]-=modifier;
+          break;
+          case 'A': nodeInfosByName['player'].trs.translation[0]-=modifier;
+          break;
+          case '4': nodeInfosByName['player'].trs.translation[0]-=modifier;
+          break;
+          case 'd': nodeInfosByName['player'].trs.translation[0]+=modifier;
+          break;
+          case 'D': nodeInfosByName['player'].trs.translation[0]+=modifier;
+          break;
+          case '6': nodeInfosByName['player'].trs.translation[0]+=modifier;
+          break;
+          case 'w': nodeInfosByName['player'].trs.translation[1]+=modifier;
+          break;
+          case 'W': nodeInfosByName['player'].trs.translation[1]+=modifier;
+          break;
+          case '8': nodeInfosByName['player'].trs.translation[1]+=modifier;
+          break;
+          case 's': nodeInfosByName['player'].trs.translation[1]-=modifier;
+          break;
+          case 'S': nodeInfosByName['player'].trs.translation[1]-=modifier;
+          break;
+          case '5': nodeInfosByName['player'].trs.translation[1]-=modifier;
+          break;
+          }   
+    }
 
 
 
@@ -387,19 +500,27 @@ function main() {
     var viewMatrix = m4.inverse(cameraMatrix);
 
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
-  
-    //var fRotationRadians = degToRad(uiObj.rotation.y);
 
     if(sceneDescription.children.length!=0){//verifica se a cena não esta vazia
 
 
       var deltaTime = time - then;
       then = time;
+      var adjust;
+      var speed = 3;
+      var c = time * speed;
+      //console.log(deltaTime);
+      //console.log(time);
+
+      adjust = Math.sin(c);
+      //console.log(adjust);
+
       for(ii=1;ii<=numberOfObjects;ii++)
       {
         //console.log(nodeInfosByName[ii].isSpining);
 
-        nodeInfosByName[ii].trs.rotation[1]+=(deltaTime*nodeInfosByName[ii].speed)*nodeInfosByName[ii].isSpining;
+        nodeInfosByName[ii].trs.translation[0]=nodeInfosByName[ii].origin[0]+(adjust*2);
+        //nodeInfosByName[ii].trs.translation[1]=nodeInfosByName[ii].trs.translation[1]+(adjust);
       }
 
 
