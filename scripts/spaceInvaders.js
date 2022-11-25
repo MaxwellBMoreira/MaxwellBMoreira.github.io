@@ -265,6 +265,7 @@ function insereInimigosNaCena(rows,lines){
   let j;
   let varI = 0.25;
   let varJ = 1.5;
+  let yPos = 20;
 
   rows=rows/2;
     for(j=1;j<=lines;j++){
@@ -273,8 +274,8 @@ function insereInimigosNaCena(rows,lines){
           let newObj = {
                 name: `enemy${numberOfObjects}`,
                 //objID: numberOfObjects,
-                translation: [i+varI, j+varJ, 0],
-                originalPosition: [i+varI, j+varJ, 0],
+                translation: [i+varI, yPos+varJ, 0],
+                originalPosition: [i+varI, yPos+varJ, 0],
                 //rotation: [0, 0, 0],
                 //scale: [1, 1, 1],
                 children: [],
@@ -292,8 +293,8 @@ function insereInimigosNaCena(rows,lines){
             newObj = {
                 name: `enemy${numberOfObjects}`,
                 //objID: numberOfObjects,
-                translation: [-i-varI, j+varJ, 0],
-                originalPosition: [-i-varI, j+varJ, 0],
+                translation: [-i-varI, yPos+varJ, 0],
+                originalPosition: [-i-varI, yPos+varJ, 0],
                 //rotation: [0, 0, 0],
                 //scale: [1, 1, 1],
                 children: [],
@@ -311,7 +312,7 @@ function insereInimigosNaCena(rows,lines){
             varI = varI + 1.5;
             }
             varI = 0.25;
-            varJ= varJ+2;
+            varJ= varJ+3;
     }
 }
 
@@ -345,8 +346,23 @@ const checkColision2=(obj, shot)=>{
   if(
       (shot[0] < obj[0] + 2)
     &&(shot[0] + 0.5 > obj[0])
-    &&(shot[1] < obj[1]+1)
+    &&(shot[1] < obj[1]+2)
     &&(1 + shot[1]> obj[1]) 
+  ){
+    return true;
+  }else{
+    return false;
+  }
+
+}
+
+const checkColisionPlayer=(obj, shot)=>{
+
+  if(
+      (shot[0] < obj[0] + 2)
+    &&(shot[0] + 2 > obj[0])
+    &&(shot[1] < obj[1]+2)
+    &&(2 + shot[1]> obj[1]) 
   ){
     return true;
   }else{
@@ -379,10 +395,11 @@ function main() {
   nodeInfosByName = [];
   bufferInfoArray = [];
   vaoArray = [];
-  enemyRows=6;
-  enemyLines=2;
   maxShot=5;
   shotCounter=0;
+  enemyRows=10;
+  enemyLines=4;
+  enemyCounter=enemyLines*enemyRows;
   
 
   
@@ -489,6 +506,7 @@ function main() {
   console.log(sceneDescription);
 
   var modifier = 0.75;
+  var hitCounter=0;
 
   const bodyElement = document.querySelector("body");
 
@@ -522,52 +540,12 @@ function main() {
           case '8': 
             criarDisparo(4,"illuminati");
           break;
-          case 's': nodeInfosByName['player'].trs.translation[1]-=modifier;
-          break;
-          case 'S': nodeInfosByName['player'].trs.translation[1]-=modifier;
-          break;
-          case '5': nodeInfosByName['player'].trs.translation[1]-=modifier;
-          break;
           case 'p':
                 console.clear();
                 console.log('ToDraw',objectsToDraw);
                 console.log('obj',objects);
                 console.log('ByName',nodeInfosByName);
               break;
-          case '1':
-                //console.log('Deleting');
-                objIndex = parseInt(event.key);
-                //delete(objectsToDraw[objIndex + 1]);
-                //delete(objects[objIndex + 1]);
-                //delete(nodeInfosByName[`enemy${objIndex}`]);
-                nodeInfosByName[`enemy${objIndex}`].trs.translation[2]=99;
-              break;
-          case '2':
-                //console.log('Deleting');
-                objIndex = parseInt(event.key);
-                //delete(objectsToDraw[objIndex + 1]);
-                //delete(objects[objIndex + 1]);
-                //delete(nodeInfosByName[`enemy${objIndex}`]);
-                nodeInfosByName[`enemy${objIndex}`].trs.translation[2]=99;
-              break;
-          case '3':
-                //console.log('Deleting');
-                objIndex = parseInt(event.key);
-                //delete(objectsToDraw[objIndex + 1]);
-                //delete(objects[objIndex + 1]);
-                //delete(nodeInfosByName[`enemy${objIndex}`]);
-                nodeInfosByName[`enemy${objIndex}`].trs.translation[2]=99;
-              break; 
-            case 'm':
-              criarDisparo(2,"illuminati");
-              break;
-            case 'n':
-              console.log('Deleting');
-              objIndex = parseInt(event.key);
-              delete(objectsToDraw[19]);
-              delete(objects[objIndex + 1]);
-              delete(nodeInfosByName[`enemy${objIndex}`]);
-              break;         
           }   
     }
 
@@ -634,6 +612,13 @@ function main() {
         if(nodeInfosByName[`enemy${ii}`]!=null){
           //nodeInfosByName[`enemy${ii}`].trs.translation[1]=nodeInfosByName[`enemy${ii}`].origin[1]+(adjustTop*adjustSide*4);
           nodeInfosByName[`enemy${ii}`].trs.translation[0]=nodeInfosByName[`enemy${ii}`].origin[0]+(adjustSide*4);
+          nodeInfosByName[`enemy${ii}`].trs.translation[1]-=deltaTime;
+          
+          if(checkColisionPlayer(nodeInfosByName[`enemy${ii}`].trs.translation,nodeInfosByName[`player`].trs.translation)){
+            alert("GAME OVER");
+          break;
+          }
+
           //console.log(nodeInfosByName[`enemy${ii}`].trs.translation[0]);
         }
       }
@@ -650,14 +635,22 @@ function main() {
             &&(nodeInfosByName[`enemy${ii}`]!=null)
             &&(checkColision2(nodeInfosByName[`enemy${ii}`].trs.translation,nodeInfosByName[`shot${i}`].trs.translation))){
               console.log("POW!!!");
-              nodeInfosByName[`enemy${ii}`].trs.translation[1]=88;
+              nodeInfosByName[`enemy${ii}`].trs.translation[1]=-999;
               nodeInfosByName[`shot${i}`].trs.translation[1]=99;
+              hitCounter++;
+              if(hitCounter>=enemyCounter){
+                alert("YOU WIN!!!!");
+              }
+              break;
+            }
+            if(checkColisionPlayer(nodeInfosByName[`enemy${ii}`].trs.translation,nodeInfosByName[`player`].trs.translation)){
+              alert("GAME OVER");
               break;
             }
            
           }
           
-          if((nodeInfosByName[`shot${i}`]!=null)&&(nodeInfosByName[`shot${i}`].trs.translation[1] > 20)){
+          if((nodeInfosByName[`shot${i}`]!=null)&&(nodeInfosByName[`shot${i}`].trs.translation[1] > 45)){
             delete(nodeInfosByName[`shot${i}`]);
             delete(objectsToDraw[i+numberOfObjects+1]);
           }
@@ -707,8 +700,9 @@ function main() {
       // ------ Draw the objects --------
       twgl.drawObjectList(gl, objectsToDraw);
     }   
-
-    requestAnimationFrame(drawScene);
+    if(hitCounter<enemyCounter){
+      requestAnimationFrame(drawScene);
+    }
   }
 }
 
