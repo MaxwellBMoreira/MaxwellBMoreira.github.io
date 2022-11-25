@@ -20,6 +20,7 @@ var TRS = function() {
   };
   
   var Node = function(source) {
+    this.name = ``;
     this.children = [];
     this.localMatrix = m4.identity();
     this.worldMatrix = m4.identity();

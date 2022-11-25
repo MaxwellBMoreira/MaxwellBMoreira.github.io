@@ -15,8 +15,12 @@ var tex;
 var bufferInfoArray;
 var vaoArray;
 var then;
+var enemyRows;
+var enemyLines;
 var enemyCounter;
 var arrayOfObjects;
+var maxShot;
+var shotCounter;
 
 var palette = {
   corLuz: [255, 255, 255], // RGB array
@@ -59,6 +63,7 @@ function makeNode(nodeDescription) {
         vertexArray: nodeDescription.vao,
       };
       objectsToDraw.push(node.drawInfo);
+      node.name=nodeDescription.name;
       objects.push(node);
   }
   makeNodes(nodeDescription.children).forEach(function(child) {
@@ -115,7 +120,7 @@ function loadNewObject(objShape,objTexture){
   }else{
     numberOfObjects++;
     newObj.name=`${numberOfObjects}`;
-    objectControl.arrayOfObjects.push(newObj.name);
+    //objectControl.arrayOfObjects.push(newObj.name);
   }
 
   
@@ -123,6 +128,45 @@ function loadNewObject(objShape,objTexture){
   //Printa o conteudo do objeto
   console.log('Inserindo novo objeto na cena! Dados do objeto:');
   console.log(newObj);
+
+  //insere o objeto na cena
+  addObjectToScene(newObj);
+}
+
+
+function criarDisparo(objShape,objTexture){
+  
+  //limpa o console para ver os dados
+  //console.clear()
+  
+  
+
+  //monta um objeto novo para ser inserido na cena
+  var newObj = {
+    name: ``,
+    //objID: numberOfObjects,
+    translation: [nodeInfosByName['player'].trs.translation[0],
+                  nodeInfosByName['player'].trs.translation[1],
+                  nodeInfosByName['player'].trs.translation[2]],
+    //rotation: [0, 0, 0],
+    //scale: [1, 1, 1],
+    children: [],
+    //carrega a textura do array de texturas
+    texture: objTexture,
+    //carega bufferInfo e Vao dos respectivos arrays
+    bufferInfo: bufferInfoArray[objShape],
+    vao: vaoArray[objShape],
+  }
+
+    shotCounter++;
+    newObj.name=`shot${shotCounter}`;
+    //objectControl.arrayOfObjects.push(newObj.name);
+
+  
+
+  //Printa o conteudo do objeto
+  //console.log('BANG!');
+  //console.log(newObj);
 
   //insere o objeto na cena
   addObjectToScene(newObj);
@@ -136,27 +180,10 @@ function addObjectToScene(obj){
 
   objectsToDraw = [];
   objects = [];
-  nodeInfosByName = {};
+  nodeInfosByName = [];
 
-  //recria a cena com o novo objeto
-  //console.log('antes:'+scene);
   scene = makeNode(sceneDescription);
-  gui.destroy();
-  gui=null;
-  //console.log('depois:'+scene);
 
-  console.log('_______Situação atual dos arrays_______');
-  console.log('nodeInfosByName');
-  console.log(nodeInfosByName);
-  
-  console.log('ObjectsToDraw:');
-  console.log(objectsToDraw);
-  
-  console.log('Objects:');
-  console.log(objects);
-  
-  console.log('sceneDescription');
-  console.log(sceneDescription);
 }
 
 
@@ -190,7 +217,8 @@ function loadObjBufferInfoAndVao(){
   let urls =["./objects/cube.json",
             "./objects/triPyramid.json",
             "./objects/triangule.json",
-            "./objects/smallCube.json"
+            "./objects/smallCube.json",
+            "./objects/shot.json"
           ]
 
   let request = new XMLHttpRequest();
@@ -233,16 +261,20 @@ function loadObjBufferInfoAndVao(){
 }
 //==========================================================================
 
-function insereInimigosNaCena(qtd){
-var j;
+function insereInimigosNaCena(rows,lines){
+  let j;
+  let varI = 0.25;
+  let varJ = 1.5;
 
-    for(j=1;j<=qtd;j++){
-        for(i=1;i<=qtd;i++){
-            let newObj = {
-                name: `${numberOfObjects}`,
+  rows=rows/2;
+    for(j=1;j<=lines;j++){
+        for(i=1;i<=rows;i++){
+          numberOfObjects++;  
+          let newObj = {
+                name: `enemy${numberOfObjects}`,
                 //objID: numberOfObjects,
-                translation: [i*4, j*4, 0],
-                originalPosition: [i*4, j*4, 0],
+                translation: [i+varI, j+varJ, 0],
+                originalPosition: [i+varI, j+varJ, 0],
                 //rotation: [0, 0, 0],
                 //scale: [1, 1, 1],
                 children: [],
@@ -252,17 +284,16 @@ var j;
                 bufferInfo: bufferInfoArray[0],
                 vao: vaoArray[0],
             }
-            numberOfObjects++;
-            newObj.name=`${numberOfObjects}`;
+            //newObj.name=`${numberOfObjects}`;
             arrayOfObjects.push(newObj.name);
             sceneDescription.children.push(newObj);
     
-    
+            numberOfObjects++;
             newObj = {
-                name: `${numberOfObjects}`,
+                name: `enemy${numberOfObjects}`,
                 //objID: numberOfObjects,
-                translation: [-i*4, j*4, 0],
-                originalPosition: [-i*4, j*4, 0],
+                translation: [-i-varI, j+varJ, 0],
+                originalPosition: [-i-varI, j+varJ, 0],
                 //rotation: [0, 0, 0],
                 //scale: [1, 1, 1],
                 children: [],
@@ -272,12 +303,56 @@ var j;
                 bufferInfo: bufferInfoArray[0],
                 vao: vaoArray[0],
             }
-            numberOfObjects++;
-            newObj.name=`${numberOfObjects}`;
+            //newObj.name=`${numberOfObjects}`;
             arrayOfObjects.push(newObj.name);
             sceneDescription.children.push(newObj);
-              }
+            
+
+            varI = varI + 1.5;
+            }
+            varI = 0.25;
+            varJ= varJ+2;
     }
+}
+
+const checkColision = (obj, shot) => {
+  var size = 1.3; // size representa o raio do objeto
+
+  // testa se y é positivo
+  if (shot[1] >= 0) {
+    if (shot[0] > obj[0] - size && shot[0] < obj[0] + size) {
+      if (shot[1] > obj[1] - size) {
+        //colidiu
+        //console.log("colidiu+");
+        return true;
+      }
+    }
+  } else {
+    if (shot[0] > obj[0] - size && shot[0] < obj[0] + size) {
+      if (shot[1] > obj[1] + size) {
+        //colidiu
+        //console.log("colidiu-");
+
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
+const checkColision2=(obj, shot)=>{
+
+  if(
+      (shot[0] < obj[0] + 2)
+    &&(shot[0] + 0.5 > obj[0])
+    &&(shot[1] < obj[1]+1)
+    &&(1 + shot[1]> obj[1]) 
+  ){
+    return true;
+  }else{
+    return false;
+  }
+
 }
 
 function main() {
@@ -301,10 +376,14 @@ function main() {
   objects = [];
   arrayOfObjects = [];
   //listOfObjId=[];
-  nodeInfosByName = {};
+  nodeInfosByName = [];
   bufferInfoArray = [];
   vaoArray = [];
-  enemyCounter=2;
+  enemyRows=6;
+  enemyLines=2;
+  maxShot=5;
+  shotCounter=0;
+  
 
   
   //Carrega as meshs dos objetos
@@ -319,25 +398,6 @@ function main() {
   //console.log('All Textures');
   //console.log(textureNames);
 
-
-  //Insere manualmente a primeira luz
-  /*
-  lightCounter++;
-  let newLight ={
-
-    name:`light${lightCounter}`,
-    index: lightCounter,
-    selectedLight: 1,
-    posX: 0,
-    posY: 5,
-    posZ: 0,
-    color: [255,255,255],
-    specular: [255,255,255],
-    shininess:300,
-  }
-  myLights.push(newLight);
-  lightControl.arrayOfLights.push(newLight.index);
-  */
 
   //insere manuelamente a primeira camera
   cameraCounter++;
@@ -387,7 +447,7 @@ function main() {
           vao: vaoArray[0],
           children: [],
         },
-        {
+        /*{
             name: `2`,
             index:2,
             draw: true,
@@ -396,7 +456,7 @@ function main() {
             bufferInfo: bufferInfoArray[0],
             vao: vaoArray[0],
             children: [],
-        },    
+        },*/    
       ],
     };
 
@@ -406,8 +466,8 @@ function main() {
   }
   
   //Cria cena inicial apenas com a origem nela
-
-  //insereInimigosNaCena(enemyCounter);
+  enemyCounter=enemyRows*enemyLines;
+  insereInimigosNaCena(enemyRows,enemyLines);
 
   scene = makeNode(sceneDescription);
 
@@ -438,6 +498,8 @@ function main() {
     //bodyElement.addEventListener("keypress", cFunction , false );
   
     function gameAction(event){
+
+      let objIndex;
       switch(event.key){
           case 'a': nodeInfosByName['player'].trs.translation[0]-=modifier;
           break;
@@ -451,11 +513,14 @@ function main() {
           break;
           case '6': nodeInfosByName['player'].trs.translation[0]+=modifier;
           break;
-          case 'w': nodeInfosByName['player'].trs.translation[1]+=modifier;
+          case 'w':
+            criarDisparo(4,"illuminati");
           break;
-          case 'W': nodeInfosByName['player'].trs.translation[1]+=modifier;
+          case 'W':
+            criarDisparo(4,"illuminati");
           break;
-          case '8': nodeInfosByName['player'].trs.translation[1]+=modifier;
+          case '8': 
+            criarDisparo(4,"illuminati");
           break;
           case 's': nodeInfosByName['player'].trs.translation[1]-=modifier;
           break;
@@ -463,6 +528,46 @@ function main() {
           break;
           case '5': nodeInfosByName['player'].trs.translation[1]-=modifier;
           break;
+          case 'p':
+                console.clear();
+                console.log('ToDraw',objectsToDraw);
+                console.log('obj',objects);
+                console.log('ByName',nodeInfosByName);
+              break;
+          case '1':
+                //console.log('Deleting');
+                objIndex = parseInt(event.key);
+                //delete(objectsToDraw[objIndex + 1]);
+                //delete(objects[objIndex + 1]);
+                //delete(nodeInfosByName[`enemy${objIndex}`]);
+                nodeInfosByName[`enemy${objIndex}`].trs.translation[2]=99;
+              break;
+          case '2':
+                //console.log('Deleting');
+                objIndex = parseInt(event.key);
+                //delete(objectsToDraw[objIndex + 1]);
+                //delete(objects[objIndex + 1]);
+                //delete(nodeInfosByName[`enemy${objIndex}`]);
+                nodeInfosByName[`enemy${objIndex}`].trs.translation[2]=99;
+              break;
+          case '3':
+                //console.log('Deleting');
+                objIndex = parseInt(event.key);
+                //delete(objectsToDraw[objIndex + 1]);
+                //delete(objects[objIndex + 1]);
+                //delete(nodeInfosByName[`enemy${objIndex}`]);
+                nodeInfosByName[`enemy${objIndex}`].trs.translation[2]=99;
+              break; 
+            case 'm':
+              criarDisparo(2,"illuminati");
+              break;
+            case 'n':
+              console.log('Deleting');
+              objIndex = parseInt(event.key);
+              delete(objectsToDraw[19]);
+              delete(objects[objIndex + 1]);
+              delete(nodeInfosByName[`enemy${objIndex}`]);
+              break;         
           }   
     }
 
@@ -476,6 +581,7 @@ function main() {
     if(gui == null){
       interfaceGUI();
     }
+    //console.clear();
     
 
     twgl.resizeCanvasToDisplaySize(gl.canvas);
@@ -489,6 +595,17 @@ function main() {
     // Compute the projection matrix
     var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
     var projectionMatrix = m4.perspective(fieldOfViewRadians, aspect, 1, 200);
+
+    var deltaTime = time - then;
+    then = time;
+    var adjustSide;
+    var adjustTop;
+    var speed = 1.8;
+    var c = time * speed;
+
+    adjustSide = Math.sin(c);
+    adjustTop = Math.cos(c);
+
 
     // Compute the camera's matrix using look at.
     var cameraPosition = [cameraControl.posX, cameraControl.posY, cameraControl.posZ];
@@ -504,23 +621,47 @@ function main() {
     if(sceneDescription.children.length!=0){//verifica se a cena não esta vazia
 
 
-      var deltaTime = time - then;
-      then = time;
-      var adjust;
-      var speed = 3;
-      var c = time * speed;
+
       //console.log(deltaTime);
       //console.log(time);
 
-      adjust = Math.sin(c);
+
       //console.log(adjust);
 
       for(ii=1;ii<=numberOfObjects;ii++)
       {
         //console.log(nodeInfosByName[ii].isSpining);
+        if(nodeInfosByName[`enemy${ii}`]!=null){
+          //nodeInfosByName[`enemy${ii}`].trs.translation[1]=nodeInfosByName[`enemy${ii}`].origin[1]+(adjustTop*adjustSide*4);
+          nodeInfosByName[`enemy${ii}`].trs.translation[0]=nodeInfosByName[`enemy${ii}`].origin[0]+(adjustSide*4);
+          //console.log(nodeInfosByName[`enemy${ii}`].trs.translation[0]);
+        }
+      }
+      //console.log(shotCounter);
+      for(i=1;i<=shotCounter;i++){
+        if(nodeInfosByName[`shot${i}`]!=null){
+          nodeInfosByName[`shot${i}`].trs.translation[1]+=deltaTime*speed*15;
+          //console.log(nodeInfosByName[`shot${i}`].trs.translation[1]);
 
-        nodeInfosByName[ii].trs.translation[0]=nodeInfosByName[ii].origin[0]+(adjust*2);
-        //nodeInfosByName[ii].trs.translation[1]=nodeInfosByName[ii].trs.translation[1]+(adjust);
+
+          for(ii=1;ii<=numberOfObjects;ii++)
+          {
+            if((nodeInfosByName[`shot${i}`]!=null)
+            &&(nodeInfosByName[`enemy${ii}`]!=null)
+            &&(checkColision2(nodeInfosByName[`enemy${ii}`].trs.translation,nodeInfosByName[`shot${i}`].trs.translation))){
+              console.log("POW!!!");
+              nodeInfosByName[`enemy${ii}`].trs.translation[1]=88;
+              nodeInfosByName[`shot${i}`].trs.translation[1]=99;
+              break;
+            }
+           
+          }
+          
+          if((nodeInfosByName[`shot${i}`]!=null)&&(nodeInfosByName[`shot${i}`].trs.translation[1] > 20)){
+            delete(nodeInfosByName[`shot${i}`]);
+            delete(objectsToDraw[i+numberOfObjects+1]);
+          }
+        }
       }
 
 

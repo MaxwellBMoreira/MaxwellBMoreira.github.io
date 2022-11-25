@@ -282,7 +282,7 @@ const interfaceGUI = () => {
   let objIsSpining;
   let objSpinSpeed;
 
-  var manipObjFolder = gui.addFolder('Manipulate Objects');
+  /*var manipObjFolder = gui.addFolder('Manipulate Objects');
   //objIndex = manipObjFolder.add(objectControl,"selectedName",controlArrayObjects);
     //manipObjFolder.add(objectControl,"tudogira");
   objIsSpining = manipObjFolder.add(objectControl,"spin");
@@ -324,7 +324,7 @@ const interfaceGUI = () => {
 
     gui.destroy();
     interfaceGUI();
-  })*/
+  })
 
   objIsSpining.onChange(function(value){
       nodeInfosByName[objectControl.selectedObj].isSpining = value;
@@ -334,6 +334,7 @@ const interfaceGUI = () => {
   objSpinSpeed.onChange(function(value){
     nodeInfosByName[objectControl.selectedObj].speed=value;
   })
+  
 
   const manipScene = gui.addFolder('Manipulate Scene')
     manipScene.add(objectControl,"Add Wood Crate");
@@ -344,7 +345,7 @@ const interfaceGUI = () => {
     manipScene.add(objectControl,"Add 4 side dice");
     //manipScene.add(sceneControl,"Load car");
     manipScene.add(objectControl,"Add triangule");
-
+    */
 
   const manipCamera = gui.addFolder('Manipulate Cameras')
     manipCamera.add(cameraControl,"selectedCamera",cameraControl.arrayOfCameras).onChange(function(value){
