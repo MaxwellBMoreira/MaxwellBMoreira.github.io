@@ -474,16 +474,6 @@ function main() {
       draw: false,
       children: [
         {
-            name: `cam${cameraCounter}`,
-            index:cameraCounter,
-            draw: true,
-            translation: [cameraControl.posX, cameraControl.posY, cameraControl.posZ],
-            texture: "cam",
-            bufferInfo: bufferInfoArray[1],
-            vao: vaoArray[1],
-            children: [],
-        },
-        {
           name: `player`,
           index:1,
           draw: true,
@@ -746,16 +736,12 @@ function main() {
             } 
           }
           
-          if((nodeInfosByName[`shot${i}`]!=null)&&(nodeInfosByName[`shot${i}`].trs.translation[1] > 60)){
-            delete(nodeInfosByName[`shot${i}`]);
-            delete(objectsToDraw[i+numberOfObjects+4]);
-          }
         }
       }
 
       for(i=1;i<=shotCounterEnemy;i++){
         if(nodeInfosByName[`enemyShot${i}`]!=null){
-          nodeInfosByName[`enemyShot${i}`].trs.translation[1]-=deltaTime*speed*15;
+          nodeInfosByName[`enemyShot${i}`].trs.translation[1]-=deltaTime*speed*5;
           nodeInfosByName[`enemyShot${i}`].trs.rotation[1]+=deltaTime*speed*5;
           nodeInfosByName[`enemyShot${i}`].trs.rotation[2]-=deltaTime*speed*5;
           //console.log(nodeInfosByName[`shot${i}`].trs.translation[1]);
@@ -769,7 +755,6 @@ function main() {
               if(hitsTaken>=3){
                 gameOver=1;
               }
-              
               break;
             } 
         }

@@ -362,66 +362,15 @@ const interfaceGUI = () => {
       interfaceGUI();
     })
 
-    manipCamera.add(cameraControl,"posX",-50, 50,0.1).onChange(function(value){
-      //console.log(value);
-      myCameras[cameraControl.selectedCamera-1].posX=value;
-      nodeInfosByName[`cam${cameraControl.selectedCamera}`].trs.translation[0]=value;
-    })
-    manipCamera.add(cameraControl,"posY",-50, 50, 0.1).onChange(function(value){
-      myCameras[cameraControl.selectedCamera-1].posY=value;
-      nodeInfosByName[`cam${cameraControl.selectedCamera}`].trs.translation[1]=value;
-    })
-    manipCamera.add(cameraControl,"posZ",-50,50,0.1).onChange(function(value){
-      myCameras[cameraControl.selectedCamera-1].posZ=value;
-      nodeInfosByName[`cam${cameraControl.selectedCamera}`].trs.translation[2]=value;
-    })
-    manipCamera.add(cameraControl,"lookAtX",-30, 30,0.01).onChange(function(value){
-      myCameras[cameraControl.selectedCamera-1].lookAtX=value;
-    })
-    manipCamera.add(cameraControl,"lookAtY",-30, 30,0.01).onChange(function(value){
-      myCameras[cameraControl.selectedCamera-1].lookAtY=value;
-    })
-    manipCamera.add(cameraControl,"lookAtZ",-30, 30,0.01).onChange(function(value){
-      myCameras[cameraControl.selectedCamera-1].lookAtZ=value;
-    })
-    manipCamera.add(cameraControl,"upX",-2,2,0.001).onChange(function(value){
-      myCameras[cameraControl.selectedCamera-1].upX=value;
-    })
-    manipCamera.add(cameraControl,"upY",-2,2,0.001).onChange(function(value){
-      myCameras[cameraControl.selectedCamera-1].upY=value;
-    })
-    manipCamera.add(cameraControl,"upZ",-2,2,0.001).onChange(function(value){
-      myCameras[cameraControl.selectedCamera-1].upZ=value;
-    })
-    manipCamera.add(cameraControl,"Adicionar Camera");
-
-
-
-    /*const manipLight = gui.addFolder('Manipulate Lights')
-
-    manipLight.add(lightControl,"selectedLight",lightControl.arrayOfLights).onChange(function(value){
-      manipLight.posX=myLights[value-1].posX;
-      manipLight.posY=myLights[value-1].posY;
-      manipLight.posZ=myLights[value-1].posZ;
-
-      gui.destroy();
-      interfaceGUI();
-    })
-
-    manipLight.add(lightControl,"posX",-30, 30,0.01).onChange(function(value){
-      myLights[lightControl.selectedLight-1].posX=value;
-      nodeInfosByName[`light${lightControl.selectedLight}`].trs.translation[0]=value;
-    })
-    manipLight.add(lightControl,"posY",-30, 30, 0.01).onChange(function(value){
-      myLights[lightControl.selectedLight-1].posY=value;
-      nodeInfosByName[`light${lightControl.selectedLight}`].trs.translation[1]=value;
-    })
-    manipLight.add(lightControl,"posZ",-30,30,0.01).onChange(function(value){
-      myLights[lightControl.selectedLight-1].posZ=value;
-      nodeInfosByName[`light${lightControl.selectedLight}`].trs.translation[2]=value;
-    })
-    manipLight.add(lightControl,"Adicionar Luz");
-    */
-
+    manipCamera.add(cameraControl,"posX",-50, 50,0.1)
+    manipCamera.add(cameraControl,"posY",-50, 50, 0.1)
+    manipCamera.add(cameraControl,"posZ",-50,50,0.1)
+    manipCamera.add(cameraControl,"lookAtX",-30, 30,0.01)
+    manipCamera.add(cameraControl,"lookAtY",-30, 30,0.01)
+    manipCamera.add(cameraControl,"lookAtZ",-30, 30,0.01)
+    manipCamera.add(cameraControl,"upX",-2,2,0.001)
+    manipCamera.add(cameraControl,"upY",-2,2,0.001)
+    manipCamera.add(cameraControl,"upZ",-2,2,0.001)
+    
 }
 
