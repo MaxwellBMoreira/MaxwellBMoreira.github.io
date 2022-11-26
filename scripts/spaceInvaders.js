@@ -193,15 +193,13 @@ function loadTextures(){
   console.log('Loading textures...')
 
   //Carrega todas as texturas das URLS para dentro da variavel tex
-  tex = twgl.createTextures(gl, {crate:{src:"/textures/woodcrate.png"},
-                                nitro:{src:"/textures/nitro.png"},
-                                tnt:{src:"/textures/tnt.jpg"},
+  tex = twgl.createTextures(gl, {nitro:{src:"/textures/nitro.png"},
                                 life:{src:"/textures/life.jpeg"},
-                                d4dice:{src:"/textures/d4.jpg"},
-                                illuminati:{src:"/textures/illuminati.jpg"},
-                                rock:{src:"/textures/rocks.jpg"},
-                                lamp:{src:"/textures/lamp.png"},
-                                cam:{src:"/textures/cam.png"}});
+                                cam:{src:"/textures/cam.png"},
+                                nave:{src:"/textures/nave1.jpg"},
+                                plane:{src:"/textures/crashPlane.jpg"},
+                                wumpa:{src:"/textures/wumpa.png"},
+                                cortex:{src:"/textures/cortex.png"}});
 
   //seta um array de texturas para serem acessadas pelo seus indices
   
@@ -216,10 +214,10 @@ function loadObjBufferInfoAndVao(){
 
   //armazena todas as URLS das descrições dos objetos
   let urls =["./objects/cube.json",
-            "./objects/triPyramid.json",
-            "./objects/triangule.json",
             "./objects/smallCube.json",
-            "./objects/shot.json"
+            "./objects/shot.json",
+            "./objects/nave.json",
+            "./objects/bigCube.json",
           ]
 
   let request = new XMLHttpRequest();
@@ -281,7 +279,7 @@ function insereInimigosNaCena(rows,lines){
                 //scale: [1, 1, 1],
                 children: [],
                 //carrega a textura do array de texturas
-                texture: 'nitro',
+                texture: 'cortex',
                 //carega bufferInfo e Vao dos respectivos arrays
                 bufferInfo: bufferInfoArray[0],
                 vao: vaoArray[0],
@@ -300,7 +298,7 @@ function insereInimigosNaCena(rows,lines){
                 //scale: [1, 1, 1],
                 children: [],
                 //carrega a textura do array de texturas
-                texture: 'nitro',
+                texture: 'cortex',
                 //carega bufferInfo e Vao dos respectivos arrays
                 bufferInfo: bufferInfoArray[0],
                 vao: vaoArray[0],
@@ -359,11 +357,10 @@ const checkColision2=(obj, shot)=>{
 
 const checkColisionPlayer=(obj, shot)=>{
 
-  if(
-      (shot[0] < obj[0] + 2)
-    &&(shot[0] + 2 > obj[0])
+  if((shot[0] < obj[0] + 2)
+    &&(shot[0] + 2.5 > obj[0])
     &&(shot[1] < obj[1]+2)
-    &&(2 + shot[1]> obj[1]) 
+    &&(2.5 + shot[1]> obj[1]) 
   ){
     return true;
   }else{
@@ -402,6 +399,29 @@ function main() {
   enemyLines=4;
   enemyCounter=enemyLines*enemyRows;
   gameOver=0;
+  var isMusicPLaying=0;
+
+  var backgroundMusic = new Audio("/audio/crashBandicootPlaneTheme.mp3");
+  backgroundMusic.muted=false;
+  backgroundMusic.volume=0.05;
+
+  var enemyHitSound = new Audio("/audio/enemyPlaneHit.wav");
+  enemyHitSound.muted=false;
+  enemyHitSound.volume=0.01;
+
+  var enemyFallSound = new Audio("/audio/enemyPlaneFall.wav");
+  enemyFallSound.muted=false;
+  enemyFallSound.volume=0.03;
+
+  var shotSound = new Audio("/audio/shot.wav");
+  shotSound.muted=false;
+  shotSound.volume=0.03;
+
+  var playerHitSound = new Audio("/audio/playerHit.wav");
+  playerHitSound.muted=false;
+  playerHitSound.volume=0.05;
+
+
   
 
   
@@ -452,8 +472,8 @@ function main() {
             draw: true,
             translation: [cameraControl.posX, cameraControl.posY, cameraControl.posZ],
             texture: "cam",
-            bufferInfo: bufferInfoArray[3],
-            vao: vaoArray[3],
+            bufferInfo: bufferInfoArray[1],
+            vao: vaoArray[1],
             children: [],
         },
         {
@@ -461,9 +481,9 @@ function main() {
           index:1,
           draw: true,
           translation: [0, -7, 0],
-          texture: "life",
-          bufferInfo: bufferInfoArray[0],
-          vao: vaoArray[0],
+          texture: "plane",
+          bufferInfo: bufferInfoArray[4],
+          vao: vaoArray[4],
           children: [],
         },
         /*{
@@ -522,32 +542,69 @@ function main() {
       let objIndex;
       switch(event.key){
           case 'a': nodeInfosByName['player'].trs.translation[0]-=modifier;
+          if(!isMusicPLaying){
+            backgroundMusic.play();
+            isMusicPLaying=1;
+          }
           break;
           case 'A': nodeInfosByName['player'].trs.translation[0]-=modifier;
+          if(!isMusicPLaying){
+            backgroundMusic.play();
+            isMusicPLaying=1;
+          }
           break;
           case '4': nodeInfosByName['player'].trs.translation[0]-=modifier;
+          if(!isMusicPLaying){
+            backgroundMusic.play();
+            isMusicPLaying=1;
+          }
           break;
           case 'd': nodeInfosByName['player'].trs.translation[0]+=modifier;
+          if(!isMusicPLaying){
+            backgroundMusic.play();
+            isMusicPLaying=1;
+          }
           break;
           case 'D': nodeInfosByName['player'].trs.translation[0]+=modifier;
+          if(!isMusicPLaying){
+            backgroundMusic.play();
+            isMusicPLaying=1;
+          }
           break;
           case '6': nodeInfosByName['player'].trs.translation[0]+=modifier;
+          if(!isMusicPLaying){
+            backgroundMusic.play();
+            isMusicPLaying=1;
+          }
           break;
           case 'w':
-            criarDisparo(4,"illuminati");
+            criarDisparo(1,"wumpa");
+            if(!isMusicPLaying){
+              backgroundMusic.play();
+              isMusicPLaying=1;
+            }
+            shotSound.play();
           break;
           case 'W':
-            criarDisparo(4,"illuminati");
+            criarDisparo(1,"wumpa");
+            if(!isMusicPLaying){
+              backgroundMusic.play();
+              isMusicPLaying=1;
+            }
           break;
           case '8': 
-            criarDisparo(4,"illuminati");
+            criarDisparo(1,"wumpa");
+            if(!isMusicPLaying){
+              backgroundMusic.play();
+              isMusicPLaying=1;
+            }
           break;
           case 'p':
                 console.clear();
                 console.log('ToDraw',objectsToDraw);
                 console.log('obj',objects);
                 console.log('ByName',nodeInfosByName);
-              break;
+              break;         
           }   
     }
 
@@ -618,8 +675,11 @@ function main() {
           //cameraControl.upX=adjustTop;
 
 
-          if(checkColisionPlayer(nodeInfosByName[`enemy${ii}`].trs.translation,nodeInfosByName[`player`].trs.translation)){
+          if(
+            (checkColisionPlayer(nodeInfosByName[`enemy${ii}`].trs.translation,nodeInfosByName[`player`].trs.translation))
+            ||nodeInfosByName[`enemy${ii}`].trs.translation[1]<nodeInfosByName[`player`].trs.translation[1]-3){
             //alert("GAME OVER");
+            playerHitSound.play();
             gameOver=1;
           break;
           }
@@ -631,6 +691,8 @@ function main() {
       for(i=1;i<=shotCounter;i++){
         if(nodeInfosByName[`shot${i}`]!=null){
           nodeInfosByName[`shot${i}`].trs.translation[1]+=deltaTime*speed*15;
+          nodeInfosByName[`shot${i}`].trs.rotation[1]+=deltaTime*speed*5;
+          nodeInfosByName[`shot${i}`].trs.rotation[2]-=deltaTime*speed*5;
           //console.log(nodeInfosByName[`shot${i}`].trs.translation[1]);
 
 
@@ -639,9 +701,11 @@ function main() {
             if((nodeInfosByName[`shot${i}`]!=null)
             &&(nodeInfosByName[`enemy${ii}`]!=null)
             &&(checkColision2(nodeInfosByName[`enemy${ii}`].trs.translation,nodeInfosByName[`shot${i}`].trs.translation))){
-              nodeInfosByName[`enemy${ii}`].trs.translation[1]=-999;
-              nodeInfosByName[`shot${i}`].trs.translation[1]=99;
+              nodeInfosByName[`enemy${ii}`].trs.translation[1]=990;
+              nodeInfosByName[`shot${i}`].trs.translation[1]=999;
               hitCounter++;
+              enemyHitSound.play();
+              enemyFallSound.play();
               if(hitCounter>=enemyCounter){
                 gameOver=1;
               }
@@ -703,8 +767,10 @@ function main() {
       requestAnimationFrame(drawScene);
     }else{
       if(hitCounter>=enemyCounter){
-        alert("You Win!!");
+        backgroundMusic.pause();
+        alert("You Win!!");        
       }else{
+        backgroundMusic.pause();
         alert("You Lost!! Game Over!");
       }
     }
