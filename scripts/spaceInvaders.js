@@ -21,6 +21,7 @@ var enemyCounter;
 var arrayOfObjects;
 var maxShot;
 var shotCounter;
+var gameOver;
 
 var palette = {
   corLuz: [255, 255, 255], // RGB array
@@ -400,6 +401,7 @@ function main() {
   enemyRows=10;
   enemyLines=4;
   enemyCounter=enemyLines*enemyRows;
+  gameOver=0;
   
 
   
@@ -613,9 +615,12 @@ function main() {
           //nodeInfosByName[`enemy${ii}`].trs.translation[1]=nodeInfosByName[`enemy${ii}`].origin[1]+(adjustTop*adjustSide*4);
           nodeInfosByName[`enemy${ii}`].trs.translation[0]=nodeInfosByName[`enemy${ii}`].origin[0]+(adjustSide*4);
           nodeInfosByName[`enemy${ii}`].trs.translation[1]-=deltaTime;
-          
+          //cameraControl.upX=adjustTop;
+
+
           if(checkColisionPlayer(nodeInfosByName[`enemy${ii}`].trs.translation,nodeInfosByName[`player`].trs.translation)){
-            alert("GAME OVER");
+            //alert("GAME OVER");
+            gameOver=1;
           break;
           }
 
@@ -634,20 +639,14 @@ function main() {
             if((nodeInfosByName[`shot${i}`]!=null)
             &&(nodeInfosByName[`enemy${ii}`]!=null)
             &&(checkColision2(nodeInfosByName[`enemy${ii}`].trs.translation,nodeInfosByName[`shot${i}`].trs.translation))){
-              console.log("POW!!!");
               nodeInfosByName[`enemy${ii}`].trs.translation[1]=-999;
               nodeInfosByName[`shot${i}`].trs.translation[1]=99;
               hitCounter++;
               if(hitCounter>=enemyCounter){
-                alert("YOU WIN!!!!");
+                gameOver=1;
               }
               break;
-            }
-            if(checkColisionPlayer(nodeInfosByName[`enemy${ii}`].trs.translation,nodeInfosByName[`player`].trs.translation)){
-              alert("GAME OVER");
-              break;
-            }
-           
+            } 
           }
           
           if((nodeInfosByName[`shot${i}`]!=null)&&(nodeInfosByName[`shot${i}`].trs.translation[1] > 45)){
@@ -700,8 +699,14 @@ function main() {
       // ------ Draw the objects --------
       twgl.drawObjectList(gl, objectsToDraw);
     }   
-    if(hitCounter<enemyCounter){
+    if(!gameOver){
       requestAnimationFrame(drawScene);
+    }else{
+      if(hitCounter>=enemyCounter){
+        alert("You Win!!");
+      }else{
+        alert("You Lost!! Game Over!");
+      }
     }
   }
 }
