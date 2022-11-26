@@ -21,7 +21,10 @@ var enemyCounter;
 var arrayOfObjects;
 var maxShot;
 var shotCounter;
+var shotCounterEnemy;
 var gameOver;
+var lastShotTime;
+var tempoAcumulado;
 
 var palette = {
   corLuz: [255, 255, 255], // RGB array
@@ -47,7 +50,7 @@ function makeNode(nodeDescription) {
     trs: trs,
     origin: nodeDescription.originalPosition,
     node: node,
-    isSpining: false,
+    isAlive: true,
     speed: 3,
   };
 
@@ -134,6 +137,44 @@ function loadNewObject(objShape,objTexture){
   addObjectToScene(newObj);
 }
 
+function criarDisparoInimigo(objShape,objTexture,origem){
+  
+  //limpa o console para ver os dados
+  //console.clear()
+  
+  
+
+  //monta um objeto novo para ser inserido na cena
+  var newObj = {
+    name: ``,
+    //objID: numberOfObjects,
+    translation: [origem[0],
+                  origem[1],
+                  origem[2]-0.5],
+    //rotation: [0, 0, 0],
+    //scale: [1, 1, 1],
+    children: [],
+    //carrega a textura do array de texturas
+    texture: objTexture,
+    //carega bufferInfo e Vao dos respectivos arrays
+    bufferInfo: bufferInfoArray[objShape],
+    vao: vaoArray[objShape],
+  }
+
+    shotCounterEnemy++;
+    newObj.name=`enemyShot${shotCounterEnemy}`;
+    //objectControl.arrayOfObjects.push(newObj.name);
+
+  
+
+  //Printa o conteudo do objeto
+  //console.log('BANG!');
+  //console.log(newObj);
+
+  //insere o objeto na cena
+  addObjectToScene(newObj);
+}
+
 
 function criarDisparo(objShape,objTexture){
   
@@ -148,7 +189,7 @@ function criarDisparo(objShape,objTexture){
     //objID: numberOfObjects,
     translation: [nodeInfosByName['player'].trs.translation[0],
                   nodeInfosByName['player'].trs.translation[1],
-                  nodeInfosByName['player'].trs.translation[2]],
+                  nodeInfosByName['player'].trs.translation[2]-0.5],
     //rotation: [0, 0, 0],
     //scale: [1, 1, 1],
     children: [],
@@ -197,7 +238,7 @@ function loadTextures(){
                                 life:{src:"/textures/life.jpeg"},
                                 cam:{src:"/textures/cam.png"},
                                 nave:{src:"/textures/nave1.jpg"},
-                                plane:{src:"/textures/crashPlane.jpg"},
+                                plane:{src:"/textures/crashPlane.png"},
                                 wumpa:{src:"/textures/wumpa.png"},
                                 cortex:{src:"/textures/cortex.png"}});
 
@@ -315,36 +356,11 @@ function insereInimigosNaCena(rows,lines){
     }
 }
 
-const checkColision = (obj, shot) => {
-  var size = 1.3; // size representa o raio do objeto
-
-  // testa se y é positivo
-  if (shot[1] >= 0) {
-    if (shot[0] > obj[0] - size && shot[0] < obj[0] + size) {
-      if (shot[1] > obj[1] - size) {
-        //colidiu
-        //console.log("colidiu+");
-        return true;
-      }
-    }
-  } else {
-    if (shot[0] > obj[0] - size && shot[0] < obj[0] + size) {
-      if (shot[1] > obj[1] + size) {
-        //colidiu
-        //console.log("colidiu-");
-
-        return true;
-      }
-    }
-  }
-  return false;
-};
-
 const checkColision2=(obj, shot)=>{
 
   if(
       (shot[0] < obj[0] + 2)
-    &&(shot[0] + 0.5 > obj[0])
+    &&(shot[0] + 1 > obj[0])
     &&(shot[1] < obj[1]+2)
     &&(1 + shot[1]> obj[1]) 
   ){
@@ -395,11 +411,19 @@ function main() {
   vaoArray = [];
   maxShot=5;
   shotCounter=0;
+  shotCounterEnemy=0;
   enemyRows=10;
   enemyLines=4;
   enemyCounter=enemyLines*enemyRows;
   gameOver=0;
   var isMusicPLaying=0;
+  var hitsTaken=0;
+  var enemyShotProb=[15,20];
+  var hitChance;
+  var gameStart=0;
+
+  tempoAcumulado=0;
+  lastShotTime=0;
 
   var backgroundMusic = new Audio("/audio/crashBandicootPlaneTheme.mp3");
   backgroundMusic.muted=false;
@@ -438,23 +462,6 @@ function main() {
   //console.log(textureNames);
 
 
-  //insere manuelamente a primeira camera
-  cameraCounter++;
-  let newCamera = {
-    name:`cam${cameraCounter}`,
-    posX:0,
-    posY:4,
-    posZ:20,
-    lookAtX: 0,
-    lookAtY: 0,
-    lookAtZ: 0,
-    upX:0,
-    upY:1,
-    upZ:0,
-  }
-  myCameras.push(newCamera);
-  cameraControl.arrayOfCameras.push(cameraCounter);
-
   
   // cria a cena em formato de arvore
   sceneDescription =
@@ -484,18 +491,39 @@ function main() {
           texture: "plane",
           bufferInfo: bufferInfoArray[4],
           vao: vaoArray[4],
-          children: [],
+          children: [
+            {
+              name: `life1`,
+              index:2,
+              draw: true,
+              translation: [-1, -3, 0],
+              texture: "life",
+              bufferInfo: bufferInfoArray[1],
+              vao: vaoArray[1],
+              children: [],
+            },
+            {
+              name: `life2`,
+              index:3,
+              draw: true,
+              translation: [0, -3, 0],
+              texture: "life",
+              bufferInfo: bufferInfoArray[1],
+              vao: vaoArray[1],
+              children: [],
+            },
+            {
+              name: `life3`,
+              index:3,
+              draw: true,
+              translation: [1, -3, 0],
+              texture: "life",
+              bufferInfo: bufferInfoArray[1],
+              vao: vaoArray[1],
+              children: [],
+            }
+          ],
         },
-        /*{
-            name: `2`,
-            index:2,
-            draw: true,
-            translation: [0, 3, 0],
-            texture: "nitro",
-            bufferInfo: bufferInfoArray[0],
-            vao: vaoArray[0],
-            children: [],
-        },*/    
       ],
     };
 
@@ -539,7 +567,7 @@ function main() {
   
     function gameAction(event){
 
-      let objIndex;
+      gameStart=1;
       switch(event.key){
           case 'a': nodeInfosByName['player'].trs.translation[0]-=modifier;
           if(!isMusicPLaying){
@@ -591,6 +619,7 @@ function main() {
               backgroundMusic.play();
               isMusicPLaying=1;
             }
+            shotSound.play();
           break;
           case '8': 
             criarDisparo(1,"wumpa");
@@ -598,23 +627,26 @@ function main() {
               backgroundMusic.play();
               isMusicPLaying=1;
             }
+            shotSound.play();
           break;
           case 'p':
-                console.clear();
-                console.log('ToDraw',objectsToDraw);
-                console.log('obj',objects);
-                console.log('ByName',nodeInfosByName);
+            criarDisparoInimigo(1,"nitro");
+            if(!isMusicPLaying){
+              backgroundMusic.play();
+              isMusicPLaying=1;
+            }
+            shotSound.play();
               break;         
           }   
     }
 
-
-
+  alert("Pressiona uma tecla do teclado para iniciar!");
   requestAnimationFrame(drawScene);
 
   // Draw the scene.
   function drawScene(time) {
     time *= 0.001;
+
     if(gui == null){
       interfaceGUI();
     }
@@ -633,6 +665,7 @@ function main() {
     var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
     var projectionMatrix = m4.perspective(fieldOfViewRadians, aspect, 1, 200);
 
+    //console.log(time);
     var deltaTime = time - then;
     then = time;
     var adjustSide;
@@ -642,6 +675,8 @@ function main() {
 
     adjustSide = Math.sin(c);
     adjustTop = Math.cos(c);
+    tempoAcumulado+=deltaTime;
+    //console.log(tempoAcumulado);
 
 
     // Compute the camera's matrix using look at.
@@ -655,24 +690,23 @@ function main() {
 
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
 
-    if(sceneDescription.children.length!=0){//verifica se a cena não esta vazia
-
-
-
-      //console.log(deltaTime);
-      //console.log(time);
-
-
-      //console.log(adjust);
-
+    if(sceneDescription.children.length!=0){
+      if(gameStart==1){//verifica se a cena não esta vazia
       for(ii=1;ii<=numberOfObjects;ii++)
       {
         //console.log(nodeInfosByName[ii].isSpining);
-        if(nodeInfosByName[`enemy${ii}`]!=null){
-          //nodeInfosByName[`enemy${ii}`].trs.translation[1]=nodeInfosByName[`enemy${ii}`].origin[1]+(adjustTop*adjustSide*4);
+        if(nodeInfosByName[`enemy${ii}`].isAlive==true){
+          
           nodeInfosByName[`enemy${ii}`].trs.translation[0]=nodeInfosByName[`enemy${ii}`].origin[0]+(adjustSide*4);
           nodeInfosByName[`enemy${ii}`].trs.translation[1]-=deltaTime;
-          //cameraControl.upX=adjustTop;
+
+          hitChance=randInt(0,100);
+          if(hitChance>=enemyShotProb[0]&&hitChance<=enemyShotProb[1]){
+            if(tempoAcumulado>0.5){
+              tempoAcumulado=0;
+              criarDisparoInimigo(1,"nitro",nodeInfosByName[`enemy${ii}`].trs.translation);
+            }          
+          }
 
 
           if(
@@ -683,8 +717,6 @@ function main() {
             gameOver=1;
           break;
           }
-
-          //console.log(nodeInfosByName[`enemy${ii}`].trs.translation[0]);
         }
       }
       //console.log(shotCounter);
@@ -699,9 +731,10 @@ function main() {
           for(ii=1;ii<=numberOfObjects;ii++)
           {
             if((nodeInfosByName[`shot${i}`]!=null)
-            &&(nodeInfosByName[`enemy${ii}`]!=null)
+            &&(nodeInfosByName[`enemy${ii}`].isAlive==true)
             &&(checkColision2(nodeInfosByName[`enemy${ii}`].trs.translation,nodeInfosByName[`shot${i}`].trs.translation))){
               nodeInfosByName[`enemy${ii}`].trs.translation[1]=990;
+              nodeInfosByName[`enemy${ii}`].isAlive=false;
               nodeInfosByName[`shot${i}`].trs.translation[1]=999;
               hitCounter++;
               enemyHitSound.play();
@@ -713,31 +746,36 @@ function main() {
             } 
           }
           
-          if((nodeInfosByName[`shot${i}`]!=null)&&(nodeInfosByName[`shot${i}`].trs.translation[1] > 45)){
+          if((nodeInfosByName[`shot${i}`]!=null)&&(nodeInfosByName[`shot${i}`].trs.translation[1] > 60)){
             delete(nodeInfosByName[`shot${i}`]);
-            delete(objectsToDraw[i+numberOfObjects+1]);
+            delete(objectsToDraw[i+numberOfObjects+4]);
           }
         }
       }
 
+      for(i=1;i<=shotCounterEnemy;i++){
+        if(nodeInfosByName[`enemyShot${i}`]!=null){
+          nodeInfosByName[`enemyShot${i}`].trs.translation[1]-=deltaTime*speed*15;
+          nodeInfosByName[`enemyShot${i}`].trs.rotation[1]+=deltaTime*speed*5;
+          nodeInfosByName[`enemyShot${i}`].trs.rotation[2]-=deltaTime*speed*5;
+          //console.log(nodeInfosByName[`shot${i}`].trs.translation[1]);
 
+            if((nodeInfosByName[`enemyShot${i}`]!=null)
+            &&(checkColisionPlayer(nodeInfosByName[`player`].trs.translation,nodeInfosByName[`enemyShot${i}`].trs.translation))){
+              nodeInfosByName[`enemyShot${i}`].trs.translation[1]=-999;
+              hitsTaken++;
+              nodeInfosByName[`life${hitsTaken}`].trs.translation[2]=999;
+              playerHitSound.play();
+              if(hitsTaken>=3){
+                gameOver=1;
+              }
+              
+              break;
+            } 
+        }
+      }
+      }
 
-        if(objectControl.isObjectSelected && objectControl.selectedObj!=null){//meu objeto esta selecionado?  
-          if(objectControl.spin){//meu objeto esta marcado para girar sozinho?
-            //nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= (time*objectControl.speed)*objectControl.spin;
-          }
-          else//se nao esta eu giro ele na mao
-          {
-            nodeInfosByName[objectControl.selectedObj].trs.rotation[1]= objectControl.rotateY;
-          }
-          nodeInfosByName[objectControl.selectedObj].trs.translation= [objectControl.positionX,objectControl.positionY,objectControl.positionZ];
-          nodeInfosByName[objectControl.selectedObj].trs.rotation[0]= objectControl.rotateX;
-          nodeInfosByName[objectControl.selectedObj].trs.rotation[2]= objectControl.rotateZ;
-          nodeInfosByName[objectControl.selectedObj].trs.scale= [objectControl.scaleX,objectControl.scaleY,objectControl.scaleZ];       
-    }
-
-
-  
       // Update all world matrices in the scene graph
       scene.updateWorldMatrix();
   
@@ -759,9 +797,12 @@ function main() {
         object.drawInfo.uniforms.u_viewWorldPosition = cameraPosition;
     
       });
+
       
       // ------ Draw the objects --------
       twgl.drawObjectList(gl, objectsToDraw);
+
+
     }   
     if(!gameOver){
       requestAnimationFrame(drawScene);
