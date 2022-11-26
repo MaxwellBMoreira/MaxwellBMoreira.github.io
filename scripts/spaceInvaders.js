@@ -25,6 +25,7 @@ var shotCounterEnemy;
 var gameOver;
 var lastShotTime;
 var tempoAcumulado;
+var listaDeInimigos;
 
 var palette = {
   corLuz: [255, 255, 255], // RGB array
@@ -326,7 +327,8 @@ function insereInimigosNaCena(rows,lines){
                 vao: vaoArray[0],
             }
             //newObj.name=`${numberOfObjects}`;
-            arrayOfObjects.push(newObj.name);
+            //arrayOfObjects.push(newObj.name);
+            listaDeInimigos.push(newObj.name);
             sceneDescription.children.push(newObj);
     
             numberOfObjects++;
@@ -345,7 +347,8 @@ function insereInimigosNaCena(rows,lines){
                 vao: vaoArray[0],
             }
             //newObj.name=`${numberOfObjects}`;
-            arrayOfObjects.push(newObj.name);
+            //arrayOfObjects.push(newObj.name);
+            listaDeInimigos.push(newObj.name);
             sceneDescription.children.push(newObj);
             
 
@@ -400,12 +403,8 @@ function main() {
   
   then=0;
   numberOfObjects = 0;
-  cameraCounter = 0;
-  lightCounter=0;
   objectsToDraw = [];
   objects = [];
-  arrayOfObjects = [];
-  //listOfObjId=[];
   nodeInfosByName = [];
   bufferInfoArray = [];
   vaoArray = [];
@@ -413,14 +412,15 @@ function main() {
   shotCounter=0;
   shotCounterEnemy=0;
   enemyRows=10;
-  enemyLines=4;
+  enemyLines=6;
   enemyCounter=enemyLines*enemyRows;
   gameOver=0;
   var isMusicPLaying=0;
   var hitsTaken=0;
-  var enemyShotProb=[15,20];
+  var enemyShotProb=[1,5];
   var hitChance;
   var gameStart=0;
+  listaDeInimigos=[];
 
   tempoAcumulado=0;
   lastShotTime=0;
@@ -618,19 +618,11 @@ function main() {
               isMusicPLaying=1;
             }
             shotSound.play();
-          break;
-          case 'p':
-            criarDisparoInimigo(1,"nitro");
-            if(!isMusicPLaying){
-              backgroundMusic.play();
-              isMusicPLaying=1;
-            }
-            shotSound.play();
-              break;         
+          break;    
           }   
     }
 
-  alert("Pressiona uma tecla do teclado para iniciar!");
+  alert("Use as teclas A e D para mover, W para atirar. Ou 4 e 6 para mover e 8 para atirar! Pressione qualquer tecla para começar!!");
   requestAnimationFrame(drawScene);
 
   // Draw the scene.
@@ -680,22 +672,20 @@ function main() {
 
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
 
-    if(sceneDescription.children.length!=0){
-      if(gameStart==1){//verifica se a cena não esta vazia
+    if(sceneDescription.children.length!=0){//verifica se a cena não esta vazia
+      if(gameStart==1){
+ 
       for(ii=1;ii<=numberOfObjects;ii++)
       {
         //console.log(nodeInfosByName[ii].isSpining);
-        if(nodeInfosByName[`enemy${ii}`].isAlive==true){
-          
+        if(nodeInfosByName[`enemy${ii}`].isAlive==true){ 
           nodeInfosByName[`enemy${ii}`].trs.translation[0]=nodeInfosByName[`enemy${ii}`].origin[0]+(adjustSide*4);
           nodeInfosByName[`enemy${ii}`].trs.translation[1]-=deltaTime;
+          nodeInfosByName[`enemy${ii}`].d
 
-          hitChance=randInt(0,100);
+          hitChance=randInt(0,7000);
           if(hitChance>=enemyShotProb[0]&&hitChance<=enemyShotProb[1]){
-            if(tempoAcumulado>0.5){
-              tempoAcumulado=0;
-              criarDisparoInimigo(1,"nitro",nodeInfosByName[`enemy${ii}`].trs.translation);
-            }          
+            criarDisparoInimigo(1,"nitro",nodeInfosByName[`enemy${ii}`].trs.translation);         
           }
 
 
@@ -720,8 +710,7 @@ function main() {
 
           for(ii=1;ii<=numberOfObjects;ii++)
           {
-            if((nodeInfosByName[`shot${i}`]!=null)
-            &&(nodeInfosByName[`enemy${ii}`].isAlive==true)
+            if((nodeInfosByName[`enemy${ii}`].isAlive==true)
             &&(checkColision2(nodeInfosByName[`enemy${ii}`].trs.translation,nodeInfosByName[`shot${i}`].trs.translation))){
               nodeInfosByName[`enemy${ii}`].trs.translation[1]=990;
               nodeInfosByName[`enemy${ii}`].isAlive=false;
