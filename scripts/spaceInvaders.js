@@ -131,8 +131,8 @@ function loadNewObject(objShape,objTexture){
   
 
   //Printa o conteudo do objeto
-  console.log('Inserindo novo objeto na cena! Dados do objeto:');
-  console.log(newObj);
+  //console.log('Inserindo novo objeto na cena! Dados do objeto:');
+  //console.log(newObj);
 
   //insere o objeto na cena
   addObjectToScene(newObj);
@@ -223,7 +223,7 @@ function addObjectToScene(obj){
 
   objectsToDraw = [];
   objects = [];
-  nodeInfosByName = [];
+  nodeInfosByName = {};
 
   scene = makeNode(sceneDescription);
 
@@ -288,6 +288,7 @@ function loadObjBufferInfoAndVao(){
 
   //calcula as normais e baricentricas de cada objeto adicionado
   objectData.arrays.normals = calculateNormal(objectData.arrays.position,objectData.arrays.indices);
+  //console.log(objectData.arrays.normals);
   objectData.arrays.barycentric = calculateBarycentric(objectData.arrays.position.length);
 
   //cria os buffers através do array no objeto recebido
@@ -405,7 +406,7 @@ function main() {
   numberOfObjects = 0;
   objectsToDraw = [];
   objects = [];
-  nodeInfosByName = [];
+  nodeInfosByName = {};
   bufferInfoArray = [];
   vaoArray = [];
   maxShot=5;
@@ -425,7 +426,7 @@ function main() {
   tempoAcumulado=0;
   lastShotTime=0;
 
-  var backgroundMusic = new Audio("/audio/crashBandicootPlaneTheme.mp3");
+  var backgroundMusic = new Audio("/audio/crashBandicootLvlOneTheme.mp3");
   backgroundMusic.muted=false;
   backgroundMusic.volume=0.05;
 
@@ -444,6 +445,14 @@ function main() {
   var playerHitSound = new Audio("/audio/playerHit.wav");
   playerHitSound.muted=false;
   playerHitSound.volume=0.05;
+
+  var crystalSound = new Audio("/audio/crystal.mp3");
+  crystalSound.muted=false;
+  crystalSound.volume=0.15;
+
+  var gameOverSound = new Audio("/audio/gameOver.mp3");
+  gameOverSound.muted=false;
+  gameOverSound.volume=0.15;
 
 
   
@@ -532,7 +541,7 @@ function main() {
   //Configura FOV
   var fieldOfViewRadians = degToRad(60);
 
-  console.log('_______Situação atual dos arrays_______');
+  /*console.log('_______Situação atual dos arrays_______');
   console.log('nodeInfosByName');
   console.log(nodeInfosByName);
   
@@ -544,6 +553,7 @@ function main() {
   
   console.log('sceneDescription');
   console.log(sceneDescription);
+  */
 
   var modifier = 0.75;
   var hitCounter=0;
@@ -558,65 +568,30 @@ function main() {
     function gameAction(event){
 
       gameStart=1;
+      backgroundMusic.play();
       switch(event.key){
           case 'a': nodeInfosByName['player'].trs.translation[0]-=modifier;
-          if(!isMusicPLaying){
-            backgroundMusic.play();
-            isMusicPLaying=1;
-          }
           break;
           case 'A': nodeInfosByName['player'].trs.translation[0]-=modifier;
-          if(!isMusicPLaying){
-            backgroundMusic.play();
-            isMusicPLaying=1;
-          }
           break;
           case '4': nodeInfosByName['player'].trs.translation[0]-=modifier;
-          if(!isMusicPLaying){
-            backgroundMusic.play();
-            isMusicPLaying=1;
-          }
           break;
           case 'd': nodeInfosByName['player'].trs.translation[0]+=modifier;
-          if(!isMusicPLaying){
-            backgroundMusic.play();
-            isMusicPLaying=1;
-          }
           break;
           case 'D': nodeInfosByName['player'].trs.translation[0]+=modifier;
-          if(!isMusicPLaying){
-            backgroundMusic.play();
-            isMusicPLaying=1;
-          }
           break;
           case '6': nodeInfosByName['player'].trs.translation[0]+=modifier;
-          if(!isMusicPLaying){
-            backgroundMusic.play();
-            isMusicPLaying=1;
-          }
           break;
           case 'w':
             criarDisparo(1,"wumpa");
-            if(!isMusicPLaying){
-              backgroundMusic.play();
-              isMusicPLaying=1;
-            }
             shotSound.play();
           break;
           case 'W':
             criarDisparo(1,"wumpa");
-            if(!isMusicPLaying){
-              backgroundMusic.play();
-              isMusicPLaying=1;
-            }
             shotSound.play();
           break;
           case '8': 
             criarDisparo(1,"wumpa");
-            if(!isMusicPLaying){
-              backgroundMusic.play();
-              isMusicPLaying=1;
-            }
             shotSound.play();
           break;    
           }   
@@ -640,7 +615,7 @@ function main() {
     // Tell WebGL how to convert from clip space to pixels
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-    gl.disable(gl.CULL_FACE);
+    gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
 
     // Compute the projection matrix
@@ -681,7 +656,6 @@ function main() {
         if(nodeInfosByName[`enemy${ii}`].isAlive==true){ 
           nodeInfosByName[`enemy${ii}`].trs.translation[0]=nodeInfosByName[`enemy${ii}`].origin[0]+(adjustSide*4);
           nodeInfosByName[`enemy${ii}`].trs.translation[1]-=deltaTime;
-          nodeInfosByName[`enemy${ii}`].d
 
           hitChance=randInt(0,7000);
           if(hitChance>=enemyShotProb[0]&&hitChance<=enemyShotProb[1]){
@@ -754,6 +728,42 @@ function main() {
       scene.updateWorldMatrix();
   
       // Compute all the matrices for rendering
+      // objects.forEach(function(object) {
+
+      //     object.drawInfo.uniforms.u_lightWorldPosition = [
+
+      //       0,0,10
+      //       //nodeInfosByName['player'].trs.translation[0],
+      //       //nodeInfosByName['player'].trs.translation[1]+0.5,
+      //       //nodeInfosByName['player'].trs.translation[2],
+      //     ];
+      
+      //     object.drawInfo.uniforms.u_lightColor = [
+      //       1,1,1
+      //     ];
+      
+      //     object.drawInfo.uniforms.u_specularColor = [
+      //      1,1,1
+      //     ];
+        
+      //   object.drawInfo.uniforms.u_worldViewProjection = m4.multiply(
+      //     viewProjectionMatrix,
+      //     object.worldMatrix
+      //   );
+  
+      //   object.drawInfo.uniforms.u_world = object.worldMatrix;
+    
+      //   object.drawInfo.uniforms.u_worldInverseTranspose = m4.transpose(
+      //     m4.inverse(object.worldMatrix)
+      //   );
+    
+      //   object.drawInfo.uniforms.u_viewWorldPosition = cameraPosition;
+
+
+      //   object.drawInfo.uniforms.u_shininess = 300;
+    
+      // });
+
       objects.forEach(function(object) {
         
         object.drawInfo.uniforms.u_matrix = m4.multiply(
@@ -783,9 +793,12 @@ function main() {
     }else{
       if(hitCounter>=enemyCounter){
         backgroundMusic.pause();
-        alert("You Win!!");        
+        crystalSound.play();
+        alert("You Win!!");
+       
       }else{
         backgroundMusic.pause();
+        gameOverSound.play();
         alert("You Lost!! Game Over!");
       }
     }

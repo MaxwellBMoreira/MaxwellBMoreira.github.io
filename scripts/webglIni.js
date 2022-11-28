@@ -290,11 +290,13 @@ precision highp float;
 in vec3 v_normal;
 in vec3 v_surfaceToLight;
 in vec3 v_surfaceToView;
+in vec2 v_texcoord;
 
 uniform vec4 u_color;
 uniform float u_shininess;
 uniform vec3 u_lightColor;
 uniform vec3 u_specularColor;
+uniform sampler2D u_texture;
 
 // we need to declare an output for the fragment shader
 out vec4 outColor;
@@ -303,6 +305,7 @@ void main() {
   // because v_normal is a varying it's interpolated
   // so it will not be a uint vector. Normalizing it
   // will make it a unit vector again
+  
   vec3 normal = normalize(v_normal);
 
   vec3 surfaceToLightDirection = normalize(v_surfaceToLight);
@@ -321,7 +324,7 @@ void main() {
 
   // Lets multiply just the color portion (not the alpha)
   // by the light
-  outColor.rgb *= light * u_lightColor;
+  outColor.rgb *= surfaceToLightDirection * (1.0,1.0,1.0);
 
   // Just add in the specular
   outColor.rgb += specular * u_specularColor;
@@ -427,6 +430,7 @@ function makeProgram(gl){
   //var programInfo = twgl.createProgramInfo(gl, [vs1luz, fs1luz]);
   var programInfo = twgl.createProgramInfo(gl, [vts, fts]);
   //var programInfo = twgl.createProgramInfo(gl, [vs3luz, fs3luz]);
+  //var programInfo = twgl.createProgramInfo(gl, [vsLuzTutorial, fsLuzTutorial]);
 
 return programInfo;
 }
