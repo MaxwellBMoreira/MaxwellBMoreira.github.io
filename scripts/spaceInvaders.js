@@ -235,8 +235,8 @@ function loadTextures(){
   console.log('Loading textures...')
 
   //Carrega todas as texturas das URLS para dentro da variavel tex
-  tex = twgl.createTextures(gl, {nitro:{src:"/textures/nitro.png"},
-                                life:{src:"/textures/life.jpeg"},
+  tex = twgl.createTextures(gl, {nitro:{src:"/textures/cratenitro.png"},
+                                life:{src:"/textures/vida.jpeg"},
                                 cam:{src:"/textures/cam.png"},
                                 nave:{src:"/textures/nave1.jpg"},
                                 plane:{src:"/textures/crashPlane.png"},
