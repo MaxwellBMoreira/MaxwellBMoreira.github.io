@@ -1,3 +1,9 @@
+/*
+Desenvolvido por: Maxwell Burke Moreira
+Disciplina de Computação Gráfica
+Univeirsidade Federal de Pelotas
+*/
+
 var numberOfObjects;
 var cameraCounter;
 var lightCounter;
