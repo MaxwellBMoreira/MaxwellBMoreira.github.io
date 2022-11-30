@@ -2,6 +2,11 @@
 Desenvolvido por: Maxwell Burke Moreira
 Disciplina de Computação Gráfica
 Univeirsidade Federal de Pelotas
+
+maxwellburkemoreira@gmail.com
+mbmoreira@inf.ufpel.edu.br
+linkedin.com/in/maxwell-moreira-257902181/
+
 */
 
 var numberOfObjects;
