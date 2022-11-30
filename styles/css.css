@@ -9,7 +9,7 @@ canvas {
     height: 100vh;
     display: block;
     background-color: black;
-    background-image: url(/textures/fields.jpeg);
+    background-image: url(/textures/fields.jpg);
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center center;
